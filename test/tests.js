@@ -125,6 +125,15 @@ QUnit.test("build simple dataset from arrays", function(assert) {
         assert.equal(dataset.columns[i].columnNumber, i, "column number is set");
         assert.equal(dataset.columns[i].sourceColumnNumber, i, "source column number is set");
     }
+    for(i = 0; i < rawData.length - 2; i++) {
+        var row = dataset.rows[i];
+        assert.ok(row, "HXL row");
+        assert.equal(row.rowNumber, i, "row number");
+        assert.equal(row.sourceRowNumber, i + 2, "source row number");
+        for(j in rawData[i]) {
+            assert.equal(row.values[j], rawData[i+2][j], "row value");
+        }
+    }
 });
 
 // end

@@ -90,6 +90,20 @@ HXLBuilder.prototype.parse = function(rawData) {
     this._index = 0;
     this.dataset = new HXLDataset();
     this.dataset.columns = this._findTagRow();
+
+    var startRowNumber = this._index;
+
+    rawRow = this._getRow();
+    while (rawRow) {
+        var row = new HXLRow({
+            "values": rawRow,
+            "rowNumber": this._index - 1 - startRowNumber,
+            "sourceRowNumber": this._index - 1,
+        });
+        this.dataset.rows.push(row);
+        rawRow = this._getRow();
+    }
+
     return this.dataset;
 }
 
