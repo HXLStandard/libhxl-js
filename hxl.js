@@ -119,7 +119,7 @@ HXLBuilder.prototype._findTagRow = function() {
     throw "HXL tag row not found";
 }
 
-HXLBuilder.TAG_REGEXP = /^\s*#([A-Za-z][0-9A-Za-z_]+)\s*$/;
+HXLBuilder.TAG_REGEXP = /^\s*(#[A-Za-z][0-9A-Za-z_]+)(?:\/([A-Za-z]{2}))?\s*$/;
 
 HXLBuilder.prototype._tryTagRow = function(row) {
     var seenTag = false;
@@ -127,10 +127,11 @@ HXLBuilder.prototype._tryTagRow = function(row) {
     for (i in row) {
         if (row[i]) {
             var matches = HXLBuilder.TAG_REGEXP.exec(row[i]);
+            console.log(matches);
             if (matches) {
                 // FIXME - kludgey
                 var lastRow = this._getLastRow();
-                columns.push(new HXLColumn({"hxlTag": row[i], "headerString": lastRow[i], "columnNumber": i, "sourceColumnNumber": i}));
+                columns.push(new HXLColumn({"hxlTag": matches[1], "lang": matches[2], "headerString": lastRow[i], "columnNumber": i, "sourceColumnNumber": i}));
                 seenTag = true;
             } else {
                 return false;

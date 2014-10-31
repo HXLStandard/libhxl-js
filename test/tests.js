@@ -109,22 +109,23 @@ QUnit.test("create builder", function(assert) {
 });
 
 QUnit.test("build simple dataset from arrays", function(assert) {
-    var rawData = [
-        ["Organisation", "Sector/Cluster", "Country"],
-        ["#org", "#sector", "#country"],
-        ["UNICEF", "Education", "Columbia"],
-        ["IOM", "CCCM", "Colombia"],
-        ["UNICEF", "Education", "Venezuela"]
-    ];
-    var builder = new HXLBuilder();
-    var dataset = builder.parse(rawData);
+    var dataset = _make_sample();
     assert.ok(dataset, "HXLBuilder.parse()");
+});
+
+QUnit.test("column parsing", function(assert) {
+    var dataset = _make_sample();
     for(i in rawData[1]) {
+        var lang = null;
         assert.equal(dataset.columns[i].headerString, rawData[0][i], "HXL header string is set");
-        assert.equal(dataset.columns[i].hxlTag, rawData[1][i], "HXL hashtag is set");
+        assert.equal(dataset.columns[i].hxlTag, rawData[1][i].replace(/\/.*$/, ''), "HXL hashtag is set");
         assert.equal(dataset.columns[i].columnNumber, i, "column number is set");
         assert.equal(dataset.columns[i].sourceColumnNumber, i, "source column number is set");
     }
+});
+
+QUnit.test("row parsing", function(assert) {
+    var dataset = _make_sample();
     for(i = 0; i < rawData.length - 2; i++) {
         var row = dataset.rows[i];
         assert.ok(row, "HXL row");
@@ -135,5 +136,23 @@ QUnit.test("build simple dataset from arrays", function(assert) {
         }
     }
 });
+
+QUnit.test("language", function(assert) {
+    var dataset = _make_sample();
+    assert.equal(dataset.columns[0].lang, "en", "language provided");
+    assert.equal(dataset.columns[1].lang, null, "language not provided");
+});
+
+var rawData = [
+    ["Organisation", "Sector/Cluster", "Country"],
+    ["#org/en", "#sector", "#country"],
+    ["UNICEF", "Education", "Columbia"],
+    ["IOM", "CCCM", "Colombia"],
+    ["UNICEF", "Education", "Venezuela"]
+];
+
+function _make_sample() {
+    return new HXLBuilder().parse(rawData);
+}
 
 // end
