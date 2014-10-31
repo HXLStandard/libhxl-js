@@ -16,4 +16,24 @@ client-side libraries like [jQuery](http://jquery.com/),
 [D3](http://d3js.org/), and [AngularJS](https://angularjs.org/) (to be
 decided).
 
+# Installation
+
+Place the file hxl.js somewhere accessible to your HTML page, and then
+include it like this (substituting the appropriate path):
+
+```
+<script src="hxl.js"></script>
+```
+
+# Tests
+
+libhxl-js uses the [QUnit](http://qunitjs.com/) library from jQuery
+for unit testing.  All of the required code is included. To run the
+tests, simply open the file test/index.html in your browser.
+
+**Note:** the bundled QUnit code is _not_ Public Domain, but is
+ distributed under the [MIT
+ License](http://en.wikipedia.org/wiki/MIT_License). This testing code
+ is not required to deploy libhxl.js.
+
 _TODO_
