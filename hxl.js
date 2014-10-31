@@ -17,10 +17,11 @@ function _default_arg(value, default_value) {
 /**
  * A HXL dataset
  */
-function HXLDataset(url) {
-    this.url = url;
-    this.columns = [];
-    this.rows = [];
+function HXLDataset(opt) {
+    if (!opt) opt = {};
+    this.url = _default_arg(opt.url, null);
+    this.columns = _default_arg(opt.columns, []);;
+    this.rows = _default_arg(opt.rows, []);
 }
 
 /**

@@ -1,3 +1,10 @@
+/**
+ * Unit tests for libhxl-js
+ *
+ * Run in your browser by opening the file index.html
+ *
+ * Started October 2014 by David Megginson
+ */
 
 // HXLDataset tests
 
@@ -10,7 +17,7 @@ QUnit.test("create dataset", function(assert) {
 QUnit.test("dataset constructor params", function(assert) {
     var url = 'http://example.org/dataset.csv';
 
-    var dataset = new HXLDataset(url);
+    var dataset = new HXLDataset({"url": url});
     assert.equal(dataset.url, url, "dataset.url assigned in constructor");
 });
 
@@ -93,3 +100,5 @@ QUnit.test("row value lookups", function(assert) {
     assert.deepEqual(row.getAll(tag), [value1, value2], "row.getAll(tag)");
     
 });
+
+// end
