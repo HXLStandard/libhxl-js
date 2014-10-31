@@ -33,7 +33,13 @@ QUnit.test("column constructor params", function(assert) {
     var columnNumber = 5;
     var sourceColumnNumber = 4;
 
-    var column = new HXLColumn(hxlTag, lang, headerString, columnNumber, sourceColumnNumber);
+    var column = new HXLColumn({
+        "hxlTag": hxlTag,
+        "lang": lang,
+        "headerString": headerString,
+        "columnNumber": columnNumber,
+        "sourceColumnNumber": sourceColumnNumber
+    });
     assert.equal(column.hxlTag, hxlTag, "column.hxlTag assigned in constructor");
     assert.equal(column.lang, lang, "column.lang assigned in constructor");
     assert.equal(column.headerString, headerString, "column.headerString assigned in constructor");
@@ -56,9 +62,34 @@ QUnit.test("row constructor params", function(assert) {
     var sourceRowNumber = 7;
     var values = ['a', 'b', 'c'];
 
-    var row = new HXLRow(rowNumber, sourceRowNumber, values);
+    var row = new HXLRow({
+        'rowNumber': rowNumber,
+        'sourceRowNumber': sourceRowNumber,
+        'values': values
+    });
     assert.ok(row, "created row");
     assert.equal(row.rowNumber, rowNumber, "row.rowNumber defaults to -1");
     assert.equal(row.sourceRowNumber, sourceRowNumber, "row.sourceRowNumber defaults to -1");
     assert.deepEqual(row.values, values, "row.values defaults to []");
+});
+
+QUnit.test("row value lookups", function(assert) {
+    var tag = "#org";
+    var value1 = "UNICEF";
+    var value2 = "Save the Children";
+
+    var columns = [
+        new HXLColumn({"hxlTag": "#country"}),
+        new HXLColumn({"hxlTag": tag}),
+        new HXLColumn({"hxlTag": tag})
+    ];
+    var values = ['Colombia', value1, value2];
+
+    var row = new HXLRow({"columns": columns, "values": values});
+    assert.equal(row.get(tag), value1, "row.get(tag)");
+    assert.equal(row.get(tag, 0), value1, "row.get(tag, 0)");
+    assert.equal(row.get(tag, 1), value2, "row.get(tag, 1)");
+
+    assert.deepEqual(row.getAll(tag), [value1, value2], "row.getAll(tag)");
+    
 });

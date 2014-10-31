@@ -26,36 +26,53 @@ function HXLDataset(url) {
 /**
  * A HXL column definition.
  */
-function HXLColumn(hxlTag, lang, headerString, columnNumber, sourceColumnNumber) {
-    this.hxlTag = _default_arg(hxlTag, null);
-    this.lang = _default_arg(lang, null);
-    this.headerString = _default_arg(headerString, null);
-    this.columnNumber = _default_arg(columnNumber, -1);
-    this.sourceColumnNumber = _default_arg(sourceColumnNumber, -1);
+function HXLColumn(opt) {
+    if (!opt) opt = {};
+    this.hxlTag = _default_arg(opt.hxlTag, null);
+    this.lang = _default_arg(opt.lang, null);
+    this.headerString = _default_arg(opt.headerString, null);
+    this.columnNumber = _default_arg(opt.columnNumber, -1);
+    this.sourceColumnNumber = _default_arg(opt.sourceColumnNumber, -1);
 }
 
 /**
  * A row of HXL data.
  */
-function HXLRow(rowNumber, sourceRowNumber, values) {
-    this.rowNumber = _default_arg(rowNumber, -1);
-    this.sourceRowNumber = _default_arg(sourceRowNumber, -1)
-    this.values = _default_arg(values, []);
+function HXLRow(opt) {
+    if (!opt) opt = {};
+    this.rowNumber = _default_arg(opt.rowNumber, -1);
+    this.sourceRowNumber = _default_arg(opt.sourceRowNumber, -1)
+    this.values = _default_arg(opt.values, []);
+    this.columns = _default_arg(opt.columns, []);
 }
 
 /**
  * Get one value for a HXL tag.
  */
 HXLRow.prototype.get = function(hxlTag, index) {
-    if (typeof(index) == undefined) index = 0;
-    // TODO
+    index = _default_arg(index, 0);
+    for (i in this.columns) {
+        if (this.columns[i].hxlTag == hxlTag) {
+            if (index == 0) {
+                return this.values[i];
+            }
+            index -= 1;
+        }
+    }
+    return false;
 }
 
 /**
  * Get all values for a HXL tag.
  */
 HXLRow.prototype.getAll = function(hxlTag) {
-    // TODO
+    values = [];
+    for (i in this.columns) {
+        if (this.columns[i].hxlTag == hxlTag) {
+            values.push(this.values[i]);
+        }
+    }
+    return values;
 }
 
 // end
