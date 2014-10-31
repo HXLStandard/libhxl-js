@@ -120,8 +120,10 @@ QUnit.test("build simple dataset from arrays", function(assert) {
     var dataset = builder.parse(rawData);
     assert.ok(dataset, "HXLBuilder.parse()");
     for(i in rawData[1]) {
-        //assert.equal(dataset.columns[i].headerString, rawData[0][i]);
+        assert.equal(dataset.columns[i].headerString, rawData[0][i], "HXL header string is set");
         assert.equal(dataset.columns[i].hxlTag, rawData[1][i], "HXL hashtag is set");
+        assert.equal(dataset.columns[i].columnNumber, i, "column number is set");
+        assert.equal(dataset.columns[i].sourceColumnNumber, i, "source column number is set");
     }
 });
 

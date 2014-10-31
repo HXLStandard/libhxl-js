@@ -114,7 +114,9 @@ HXLBuilder.prototype._tryTagRow = function(row) {
         if (row[i]) {
             var matches = HXLBuilder.TAG_REGEXP.exec(row[i]);
             if (matches) {
-                columns.push(new HXLColumn({"hxlTag": row[i]}));
+                // FIXME - kludgey
+                var lastRow = this._getLastRow();
+                columns.push(new HXLColumn({"hxlTag": row[i], "headerString": lastRow[i], "columnNumber": i, "sourceColumnNumber": i}));
                 seenTag = true;
             } else {
                 return false;
@@ -125,6 +127,15 @@ HXLBuilder.prototype._tryTagRow = function(row) {
         return columns;
     } else {
         return false;
+    }
+}
+
+HXLBuilder.prototype._getLastRow = function() {
+    // FIXME this is kind of kludgey
+    if (this._index > 1) {
+        return this._rawData[this._index - 2];
+    } else {
+        return [];
     }
 }
 
