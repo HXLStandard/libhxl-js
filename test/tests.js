@@ -101,4 +101,28 @@ QUnit.test("row value lookups", function(assert) {
     
 });
 
+// HXLBuilder tests
+
+QUnit.test("create builder", function(assert) {
+    var builder = new HXLBuilder();
+    assert.ok(builder, "created builder");
+});
+
+QUnit.test("build simple dataset from arrays", function(assert) {
+    var rawData = [
+        ["Organisation", "Sector/Cluster", "Country"],
+        ["#org", "#sector", "#country"],
+        ["UNICEF", "Education", "Columbia"],
+        ["IOM", "CCCM", "Colombia"],
+        ["UNICEF", "Education", "Venezuela"]
+    ];
+    var builder = new HXLBuilder();
+    var dataset = builder.parse(rawData);
+    assert.ok(dataset, "HXLBuilder.parse()");
+    for(i in rawData[1]) {
+        //assert.equal(dataset.columns[i].headerString, rawData[0][i]);
+        assert.equal(dataset.columns[i].hxlTag, rawData[1][i], "HXL hashtag is set");
+    }
+});
+
 // end

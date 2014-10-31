@@ -76,4 +76,64 @@ HXLRow.prototype.getAll = function(hxlTag) {
     return values;
 }
 
+/**
+ * HXL builder
+ */
+function HXLBuilder(opt) {
+    if (!opt) opt = {};
+    this._index = -1;
+    this._data = null;
+}
+
+HXLBuilder.prototype.parse = function(rawData) {
+    this._rawData = rawData;
+    this._index = 0;
+    this.dataset = new HXLDataset();
+    this.dataset.columns = this._findTagRow();
+    return this.dataset;
+}
+
+HXLBuilder.prototype._findTagRow = function() {
+    var rawRow = this._getRow();
+    while (rawRow != null) {
+        var rawRow = this._getRow();
+        var columns = this._tryTagRow(rawRow);
+        if (columns) {
+            return columns;
+        }
+    }
+    throw "HXL tag row not found";
+}
+
+HXLBuilder.TAG_REGEXP = /^\s*#([A-Za-z][0-9A-Za-z_]+)\s*$/;
+
+HXLBuilder.prototype._tryTagRow = function(row) {
+    var seenTag = false;
+    var columns = [];
+    for (i in row) {
+        if (row[i]) {
+            var matches = HXLBuilder.TAG_REGEXP.exec(row[i]);
+            if (matches) {
+                columns.push(new HXLColumn({"hxlTag": row[i]}));
+                seenTag = true;
+            } else {
+                return false;
+            }
+        }
+    }
+    if (seenTag) {
+        return columns;
+    } else {
+        return false;
+    }
+}
+
+HXLBuilder.prototype._getRow = function() {
+    if (this._index < this._rawData.length) {
+        return this._rawData[this._index++];
+    } else {
+        return null;
+    }
+}
+
 // end
