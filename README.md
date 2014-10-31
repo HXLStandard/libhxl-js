@@ -5,7 +5,7 @@ JavaScript support library for the Humanitarian Exchange Language (HXL) data sta
 
 http://hxlstandard.org
 
-# Overview
+## Overview
 
 This library will be designed for use in client-size applications,
 including fully-browser-based apps: it will allow loading a HXL
@@ -16,7 +16,7 @@ client-side libraries like [jQuery](http://jquery.com/),
 [D3](http://d3js.org/), and [AngularJS](https://angularjs.org/) (to be
 decided).
 
-# Installation
+## Installation
 
 Place the file hxl.js somewhere accessible to your HTML page, and then
 include it like this (substituting the appropriate path):
@@ -25,7 +25,31 @@ include it like this (substituting the appropriate path):
 <script src="hxl.js"></script>
 ```
 
-# Tests
+## Usage
+
+```
+var rawData = [
+    ["Organisation", "Sector/Cluster", "Country"],
+    ["#org/en", "#sector", "#country"],
+    ["UNICEF", "Education", "Columbia"],
+    ["IOM", "CCCM", "Colombia"],
+    ["UNICEF", "Education", "Venezuela"]
+];
+
+var dataset = new HXLBuilder().parse(rawData);
+
+for (i in dataset.rows) {
+  var values = dataset.rows[i].values;
+  for (j in values) {
+    var tag = dataset.columns[j].hxlTag;
+    var lang = dataset.columns[j].lang;
+    var value = values[j];
+    // do something with the data
+  }
+}
+```
+
+## Tests
 
 libhxl-js uses the [QUnit](http://qunitjs.com/) library from jQuery
 for unit testing.  All of the required code is included. To run the
@@ -36,4 +60,7 @@ tests, simply open the file test/index.html in your browser.
  License](http://en.wikipedia.org/wiki/MIT_License). This testing code
  is not required to deploy libhxl.js.
 
-_TODO_
+## License
+
+Except for the QUnit library (for unit testing only), libhxl-js is in
+the Public Domain.
