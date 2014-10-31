@@ -127,7 +127,6 @@ HXLBuilder.prototype._tryTagRow = function(row) {
     for (i in row) {
         if (row[i]) {
             var matches = HXLBuilder.TAG_REGEXP.exec(row[i]);
-            console.log(matches);
             if (matches) {
                 // FIXME - kludgey
                 var lastRow = this._getLastRow();
