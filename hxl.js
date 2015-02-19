@@ -1,164 +1,172 @@
 /**
- * JavaScript library for the Humanitarian Exchange Language (HXL).
+ * Simple HXL library.
  *
- * Started October 2014 by David Megginson
- * License: Public Domain
- * Documentation: http://hxlstandard.org
+ * This isn't a full-featured HXL library; it focusses on datasets
+ * that have already had tags expanded, and includes mainly filtering
+ * operations that are useful to support mapping and visualisation.
+ *
+ * @author David Megginson
+ * @date Started 2015-02
  */
 
-function _default_arg(value, default_value) {
-    if (typeof(value) === 'undefined') {
-        return default_value;
-    } else {
-        return value;
-    }
-}
+
+////////////////////////////////////////////////////////////////////////
+// HXLDataset class
+////////////////////////////////////////////////////////////////////////
 
 /**
- * A HXL dataset
+ * Top-level wrapper for a HXL dataset.
  */
-function HXLDataset(opt) {
-    if (!opt) opt = {};
-    this.url = _default_arg(opt.url, null);
-    this.columns = _default_arg(opt.columns, []);;
-    this.rows = _default_arg(opt.rows, []);
-}
-
-/**
- * A HXL column definition.
- */
-function HXLColumn(opt) {
-    if (!opt) opt = {};
-    this.hxlTag = _default_arg(opt.hxlTag, null);
-    this.lang = _default_arg(opt.lang, null);
-    this.headerString = _default_arg(opt.headerString, null);
-    this.columnNumber = _default_arg(opt.columnNumber, -1);
-    this.sourceColumnNumber = _default_arg(opt.sourceColumnNumber, -1);
-}
-
-/**
- * A row of HXL data.
- */
-function HXLRow(opt) {
-    if (!opt) opt = {};
-    this.rowNumber = _default_arg(opt.rowNumber, -1);
-    this.sourceRowNumber = _default_arg(opt.sourceRowNumber, -1)
-    this.values = _default_arg(opt.values, []);
-    this.columns = _default_arg(opt.columns, []);
-}
-
-/**
- * Get one value for a HXL tag.
- */
-HXLRow.prototype.get = function(hxlTag, index) {
-    index = _default_arg(index, 0);
-    for (i in this.columns) {
-        if (this.columns[i].hxlTag == hxlTag) {
-            if (index == 0) {
-                return this.values[i];
-            }
-            index -= 1;
-        }
-    }
-    return false;
-}
-
-/**
- * Get all values for a HXL tag.
- */
-HXLRow.prototype.getAll = function(hxlTag) {
-    values = [];
-    for (i in this.columns) {
-        if (this.columns[i].hxlTag == hxlTag) {
-            values.push(this.values[i]);
-        }
-    }
-    return values;
-}
-
-/**
- * HXL builder
- */
-function HXLBuilder(opt) {
-    if (!opt) opt = {};
-    this._index = -1;
-    this._data = null;
-}
-
-HXLBuilder.prototype.parse = function(rawData) {
+function HXLDataset(rawData) {
     this._rawData = rawData;
-    this._index = 0;
-    this.dataset = new HXLDataset();
-    this.dataset.columns = this._findTagRow();
-
-    var startRowNumber = this._index;
-
-    rawRow = this._getRow();
-    while (rawRow) {
-        var row = new HXLRow({
-            "values": rawRow,
-            "rowNumber": this._index - 1 - startRowNumber,
-            "sourceRowNumber": this._index - 1,
-        });
-        this.dataset.rows.push(row);
-        rawRow = this._getRow();
-    }
-
-    return this.dataset;
+    this._tagRowIndex = null;
+    this._savedColumns = null;
+    Object.defineProperty(this, 'headers', {
+        enumerable: true,
+        get: HXLDataset.prototype.getHeaders
+    });
+    Object.defineProperty(this, 'tags', {
+        enumerable: true,
+        get: HXLDataset.prototype.getTags
+    });
+    Object.defineProperty(this, 'columns', {
+        enumerable: true,
+        get: HXLDataset.prototype.getColumns
+    });
 }
 
-HXLBuilder.prototype._findTagRow = function() {
-    var rawRow = this._getRow();
-    while (rawRow != null) {
-        var rawRow = this._getRow();
-        var columns = this._tryTagRow(rawRow);
-        if (columns) {
-            return columns;
+/**
+ * Get an array of string headers.
+ */
+HXLDataset.prototype.getHeaders = function () {
+    index = this._getTagRowIndex();
+    if (index > 0) {
+        return this._rawData[index - 1];
+    } else {
+        return [];
+    }
+}
+
+/**
+ * Get an array of tags.
+ */
+HXLDataset.prototype.getTags = function () {
+    return this._rawData[this._getTagRowIndex()];
+}
+
+/**
+ * Get an array of column definitions.
+ */
+HXLDataset.prototype.getColumns = function() {
+    if (this._savedColumns == null) {
+        this._savedColumns = [];
+        for (var i = 0; i < this.tags.length; i++) {
+            tag = this.tags[i];
+            header = null;
+            if (i < this.headers.length) {
+                header = this.headers[i];
+            }
+            this._savedColumns.push(new HXLColumn(tag, header));
         }
     }
-    throw "HXL tag row not found";
+    return this._savedColumns;
 }
 
-HXLBuilder.TAG_REGEXP = /^\s*(#[A-Za-z][0-9A-Za-z_]+)(?:\/([A-Za-z]{2}))?\s*$/;
+/**
+ * Get an iterator through all the rows in the dataset.
+ */
+HXLDataset.prototype.iterator = function() {
+    var index = this._getTagRowIndex() + 1;
+    var columns = this.columns;
+    var rawData = this._rawData;
+    return {
+        next: function() {
+            if (index < rawData.length) {
+                return new HXLRow(rawData[index++], columns);
+            } else {
+                return null;
+            }
+        }
+    };
+}
 
-HXLBuilder.prototype._tryTagRow = function(row) {
+/**
+ * Get the index of the tag row.
+ */
+HXLDataset.prototype._getTagRowIndex = function() {
+    if (this._tagRowIndex == null) {
+        for (var i = 0; i < 25 && i < this._rawData.length; i++) {
+            if (this._isTagRow(this._rawData[i])) {
+                this._tagRowIndex = i;
+                return this._tagRowIndex;
+            }
+        }
+        throw "No HXL tag row found."
+    } else {
+        return this._tagRowIndex;
+    }
+}
+
+HXLDataset.prototype._isTagRow = function(row) {
     var seenTag = false;
-    var columns = [];
-    for (i in row) {
+    for (var i = 0; i < row.length; i++) {
         if (row[i]) {
-            var matches = HXLBuilder.TAG_REGEXP.exec(row[i]);
-            if (matches) {
-                // FIXME - kludgey
-                var lastRow = this._getLastRow();
-                columns.push(new HXLColumn({"hxlTag": matches[1], "lang": matches[2], "headerString": lastRow[i], "columnNumber": i, "sourceColumnNumber": i}));
+            if (row[i][0] == '#') {
                 seenTag = true;
             } else {
                 return false;
             }
         }
     }
-    if (seenTag) {
-        return columns;
-    } else {
-        return false;
-    }
+    return seenTag;
 }
 
-HXLBuilder.prototype._getLastRow = function() {
-    // FIXME this is kind of kludgey
-    if (this._index > 1) {
-        return this._rawData[this._index - 2];
-    } else {
-        return [];
-    }
+////////////////////////////////////////////////////////////////////////
+// HXLColumn class
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * Wrapper for a HXL column definition.
+ */
+function HXLColumn(tag, header) {
+    this.tag = tag;
+    this.header = header;
 }
 
-HXLBuilder.prototype._getRow = function() {
-    if (this._index < this._rawData.length) {
-        return this._rawData[this._index++];
-    } else {
-        return null;
-    }
+
+////////////////////////////////////////////////////////////////////////
+// HXLRow class
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * Wrapper for a row of HXL data.
+ */
+function HXLRow(values, columns) {
+    this.values = values;
+    this.columns = columns;
 }
 
-// end
+/**
+ * Look up a value by tag.
+ */
+HXLRow.prototype.get = function(tag) {
+    for (var i = 0; i < this.columns.length && i < this.values.length; i++) {
+        if (this.columns[i].tag == tag) {
+            return this.values[i];
+        }
+    }
+    return null;
+}
+
+/**
+ * Look up all values with a specific tag.
+ */
+HXLRow.prototype.getAll = function(tag) {
+    values = [];
+    for (var i = 0; i < this.columns.length && i < this.values.length; i++) {
+        if (this.columns[i].tag == tag) {
+            values.push(this.values[i]);
+        }
+    }
+    return values;
+}
