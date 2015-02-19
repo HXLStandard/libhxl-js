@@ -170,3 +170,39 @@ HXLRow.prototype.getAll = function(tag) {
     }
     return values;
 }
+
+////////////////////////////////////////////////////////////////////////
+// HXLFilter base class (override for specific filters).
+////////////////////////////////////////////////////////////////////////
+
+function HXLFilter(dataset) {
+    this.dataset = dataset;
+    Object.defineProperty(this, 'headers', {
+        enumerable: true,
+        get: HXLDataset.prototype.getHeaders
+    });
+    Object.defineProperty(this, 'tags', {
+        enumerable: true,
+        get: HXLDataset.prototype.getTags
+    });
+    Object.defineProperty(this, 'columns', {
+        enumerable: true,
+        get: HXLDataset.prototype.getColumns
+    });
+}
+
+HXLFilter.prototype.getHeaders = function() {
+    return this.dataset.getHeaders();
+}
+
+HXLFilter.prototype.getTags = function() {
+    return this.dataset.getTags();
+}
+
+HXLFilter.prototype.getColumns = function() {
+    return this.dataset.getColumns();
+}
+
+HXLFilter.prototype.iterator = function() {
+    return this.dataset.iterator();
+}
