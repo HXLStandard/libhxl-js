@@ -76,7 +76,7 @@ HXLDataset.prototype.getColumns = function() {
  * Get the minimum value for a column
  */
 HXLDataset.prototype.getMin = function(tag) {
-    var iterator = this.iterator;
+    var iterator = this.iterator();
     var min = null;
     var row;
     while (row = iterator.next()) {
@@ -92,7 +92,7 @@ HXLDataset.prototype.getMin = function(tag) {
  * Get the minimum value for a column
  */
 HXLDataset.prototype.getMax = function(tag) {
-    var iterator = this.iterator;
+    var iterator = this.iterator();
     var max = null;
     var row;
     while (row = iterator.next()) {
@@ -102,6 +102,18 @@ HXLDataset.prototype.getMax = function(tag) {
         }
     }
     return max;
+}
+
+/**
+ * Get a list of unique values for a tag
+ */
+HXLDataset.prototype.getValues = function(tag) {
+    var iterator = this.iterator();
+    var value_map = {};
+    while (row = iterator.next()) {
+        value_map[row.get(tag)] = true;
+    }
+    return Object.keys(value_map);
 }
 
 /**

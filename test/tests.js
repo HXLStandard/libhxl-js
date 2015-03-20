@@ -44,13 +44,16 @@ QUnit.test("rows", function(assert) {
     var iterator = this.dataset.iterator();
     var index = 2;
     while (row = iterator.next()) {
-        console.log(row);
         assert.ok(row);
         for (var i = 0; i < row.values.length; i++) {
             assert.equal(TEST_DATA[index][i], row.get(TEST_DATA[1][i]));
         }
         index++;
     }
+});
+
+QUnit.test("values", function(assert) {
+    assert.deepEqual(['Coastal Province', 'Mountain Province'], this.dataset.getValues('#adm1'));
 });
 
 // end
