@@ -66,7 +66,7 @@ HXLDataset.prototype.getColumns = function() {
             if (i < this.headers.length) {
                 header = this.headers[i];
             }
-            this._savedColumns.push(HXLColumn.parse(tag, header));
+            this._savedColumns.push(HXLColumn.parse(tag, header, true));
         }
     }
     return this._savedColumns;
