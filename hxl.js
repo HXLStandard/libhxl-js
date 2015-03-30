@@ -188,7 +188,7 @@ HXLColumn.prototype.displayTag = function() {
 /**
  * Parse a tag spec into its parts.
  */
-HXLColumn.parse = function(spec, header) {
+HXLColumn.parse = function(spec, header, use_exception) {
     result = spec.match(/^(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?$/);
     if (result) {
         var attributes = []
@@ -197,6 +197,8 @@ HXLColumn.parse = function(spec, header) {
             attributes = result[2].split(/\s*\+/).filter(function(attribute) { return attribute; });
         }
         return new HXLColumn(result[1], attributes, header);
+    } else if (use_exception) {
+        throw "Bad tag specification: " + spec;
     } else {
         return null;
     }
@@ -216,20 +218,51 @@ function HXLTagPattern(tag, include_attributes, exclude_attributes) {
     this.exclude_attributes = exclude_attributes;
 }
 
-HXLTagPattern.parse = function(pattern) {
-    var result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
-    var include_attributes = [];
-    var exclude_attributes = [];
-    var attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
-    console.log(attribute_specs);
-    for (i = 0; i < attribute_specs.length; i += 2) {
-        if (attribute_specs[i] == "+") {
-            include_attributes.push(attribute_specs[i+1]);
-        } else {
-            exclude_attributes.push(attribute_specs[i+1]);
+HXLTagPattern.prototype.match = function(column) {
+
+    // tags must match
+    if (this.tag != column.tag) {
+        return false;
+    }
+
+    // include attributes must be present
+    for (i = 0; i < this.include_attributes.length; i++) {
+        attribute = this.include_attributes[i];
+        if (column.attributes.indexOf(attribute) < 0) {
+            return false;
         }
     }
-    return new HXLTagPattern(result[1], include_attributes, exclude_attributes);
+
+    // exclude attributes must not be present
+    for (i = 0; i < this.exclude_attributes.length; i++) {
+        attribute = this.exclude_attributes[i];
+        if (column.attributes.indexOf(attribute) > -1) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+HXLTagPattern.parse = function(pattern, use_exception) {
+    var result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
+    if (result) {
+        var include_attributes = [];
+        var exclude_attributes = [];
+        var attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
+        for (i = 0; i < attribute_specs.length; i += 2) {
+            if (attribute_specs[i] == "+") {
+                include_attributes.push(attribute_specs[i+1]);
+            } else {
+                exclude_attributes.push(attribute_specs[i+1]);
+            }
+        }
+        return new HXLTagPattern(result[1], include_attributes, exclude_attributes);
+    } else if (use_exception) {
+        throw "Bad tag pattern: " + pattern;
+    } else {
+        return null;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -247,9 +280,12 @@ function HXLRow(values, columns) {
 /**
  * Look up a value by tag.
  */
-HXLRow.prototype.get = function(tag) {
+HXLRow.prototype.get = function(pattern) {
+    if (typeof pattern !== "object") {
+        pattern = HXLTagPattern.parse(pattern, true);
+    }
     for (var i = 0; i < this.columns.length && i < this.values.length; i++) {
-        if (this.columns[i].tag == tag) {
+        if (pattern.match(this.columns[i])) {
             return this.values[i];
         }
     }
@@ -260,9 +296,12 @@ HXLRow.prototype.get = function(tag) {
  * Look up all values with a specific tag.
  */
 HXLRow.prototype.getAll = function(tag) {
+    if (typeof pattern !== "object") {
+        pattern = HXLTagPattern.parse(pattern, true);
+    }
     values = [];
     for (var i = 0; i < this.columns.length && i < this.values.length; i++) {
-        if (this.columns[i].tag == tag) {
+        if (pattern.match(this.columns[i])) {
             values.push(this.values[i]);
         }
     }

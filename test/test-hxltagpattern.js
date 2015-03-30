@@ -41,4 +41,23 @@ QUnit.test("exclude ok", function(assert) {
     assert.deepEqual(['iso'], this.pattern.exclude_attributes);
 });
 
+QUnit.test("positive match", function(assert) {
+    assert.ok(this.pattern.match(this.column));
+});
+
+QUnit.test("bad pattern", function(assert) {
+
+    assert.ok(HXLTagPattern.parse("#abc+x=y") === null);
+
+    var seen_exception = false;
+    try {
+        HXLTagPattern.parse("#abc+x=y", true);
+    } catch (e) {
+        seen_exception = true;
+    }
+    assert.ok(seen_exception);
+});
+
+
+
 // end

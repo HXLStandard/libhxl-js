@@ -46,5 +46,18 @@ QUnit.test("display tag", function(assert) {
     assert.equal(this.column.displayTag(), "#adm1+code+pcode");
 });
 
+QUnit.test("bad tag", function(assert) {
+
+    assert.ok(HXLColumn.parse("#0abc") === null);
+
+    var seen_exception = false;
+    try {
+        HXLColumn.parse("#0abc", null, true);
+    } catch (e) {
+        seen_exception = true;
+    }
+    assert.ok(seen_exception);
+});
+
 
 // end
