@@ -182,11 +182,12 @@ function HXLColumn(tag, attributes, header) {
  * Parse a tag spec into its parts.
  */
 HXLColumn.parse = function(spec, header) {
-    result = spec.match(/^(#[A-Za-z][A-Za-z0-9_]*)(?:(\s*\+[A-Za-z][A-Za-z0-9_]*)*)?$/);
+    result = spec.match(/^(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?$/);
     if (result) {
         var attributes = []
         if (result[2]) {
-            attributes = result[2].split(/\s*\+/);
+            // filter out empty values
+            attributes = result[2].split(/\s*\+/).filter(function(attribute) { return attribute; });
         }
         return new HXLColumn(result[1], attributes, header);
     } else {

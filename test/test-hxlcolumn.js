@@ -33,7 +33,13 @@ QUnit.test("header ok", function(assert) {
 });
 
 QUnit.test("tag parsed", function(assert) {
-    assert.equal("#adm1", this.column.tag);
+    assert.equal(this.column.tag, "#adm1");
+});
+
+QUnit.test("attributes ok", function(assert) {
+    assert.equal(this.column.attributes.length, 2);
+    assert.ok(this.column.attributes.indexOf("code") > -1);
+    assert.ok(this.column.attributes.indexOf("pcode") > -1);
 });
 
 
