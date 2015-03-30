@@ -66,7 +66,7 @@ HXLDataset.prototype.getColumns = function() {
             if (i < this.headers.length) {
                 header = this.headers[i];
             }
-            this._savedColumns.push(new HXLColumn(tag, header));
+            this._savedColumns.push(HXLColumn.parse(tag, header));
         }
     }
     return this._savedColumns;
@@ -172,10 +172,27 @@ HXLDataset.prototype._isTagRow = function(row) {
 /**
  * Wrapper for a HXL column definition.
  */
-function HXLColumn(tag, header) {
+function HXLColumn(tag, attributes, header) {
     this.tag = tag;
+    this.attributes = attributes;
     this.header = header;
 }
+
+/**
+ * Parse a tag spec into its parts.
+ */
+HXLColumn.parse = function(spec, header) {
+    result = spec.match(/^(#[A-Za-z][A-Za-z0-9_]*)(?:(\s*\+[A-Za-z][A-Za-z0-9_]*)*)?$/);
+    if (result) {
+        var attributes = []
+        if (result[2]) {
+            attributes = result[2].split(/\s*\+/);
+        }
+        return new HXLColumn(result[1], attributes, header);
+    } else {
+        return null;
+    }
+};
 
 
 ////////////////////////////////////////////////////////////////////////

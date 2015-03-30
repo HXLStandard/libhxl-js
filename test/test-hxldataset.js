@@ -14,7 +14,11 @@ var TEST_DATA = [
     ['Org 3', 'Protection', 'Coastal Province']
 ];
 
-QUnit.module("HXL", {
+
+/**
+ * HXLDataset tests
+ */
+QUnit.module("HXLDataset", {
     setup: function () {
         this.dataset = new HXLDataset(TEST_DATA);
     }
