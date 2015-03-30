@@ -179,6 +179,13 @@ function HXLColumn(tag, attributes, header) {
 }
 
 /**
+ * Create a display tagspec for the column.
+ */
+HXLColumn.prototype.displayTag = function() {
+    return [this.tag].concat(this.attributes.sort()).join('+');
+};
+
+/**
  * Parse a tag spec into its parts.
  */
 HXLColumn.parse = function(spec, header) {
@@ -193,8 +200,37 @@ HXLColumn.parse = function(spec, header) {
     } else {
         return null;
     }
-};
+}
 
+
+////////////////////////////////////////////////////////////////////////
+// HXLTagPattern class
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * Wrapper for a HXL column definition.
+ */
+function HXLTagPattern(tag, include_attributes, exclude_attributes) {
+    this.tag = tag;
+    this.include_attributes = include_attributes;
+    this.exclude_attributes = exclude_attributes;
+}
+
+HXLTagPattern.parse = function(pattern) {
+    var result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
+    var include_attributes = [];
+    var exclude_attributes = [];
+    var attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
+    console.log(attribute_specs);
+    for (i = 0; i < attribute_specs.length; i += 2) {
+        if (attribute_specs[i] == "+") {
+            include_attributes.push(attribute_specs[i+1]);
+        } else {
+            exclude_attributes.push(attribute_specs[i+1]);
+        }
+    }
+    return new HXLTagPattern(result[1], include_attributes, exclude_attributes);
+}
 
 ////////////////////////////////////////////////////////////////////////
 // HXLRow class

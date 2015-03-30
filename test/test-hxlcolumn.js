@@ -42,5 +42,9 @@ QUnit.test("attributes ok", function(assert) {
     assert.ok(this.column.attributes.indexOf("pcode") > -1);
 });
 
+QUnit.test("display tag", function(assert) {
+    assert.equal(this.column.displayTag(), "#adm1+code+pcode");
+});
+
 
 // end
