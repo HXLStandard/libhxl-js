@@ -42,6 +42,7 @@ QUnit.test("rows", function(assert) {
 QUnit.test("iterator", function(assert) {
     var iterator = this.dataset.iterator();
     var index = 3;
+    var row = null;
     while (row = iterator.next()) {
         assert.deepEqual(row.values, TEST_DATA[index]);
         index++;

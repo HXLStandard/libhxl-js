@@ -52,6 +52,7 @@ function HXLSource() {
  * @return An array of HXLRow objects.
  */
 HXLSource.prototype.getRows = function () {
+    var row;
     var rows = [];
     var iterator = this.iterator();
     while (row = iterator.next()) {
@@ -85,13 +86,11 @@ HXLSource.prototype.getDisplayTags = function () {
  * Get the minimum value for a column
  */
 HXLSource.prototype.getMin = function(pattern) {
+    var min, row, value;
     var iterator = this.iterator();
-    var min = null;
-    var row;
-
-    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
+    var pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
-        var value = row.get(pattern);
+        value = row.get(pattern);
         if (min === null || (value !== null && value < min)) {
             min = value;
         }
@@ -103,13 +102,12 @@ HXLSource.prototype.getMin = function(pattern) {
  * Get the minimum value for a column
  */
 HXLSource.prototype.getMax = function(pattern) {
+    var max, row, value;
     var iterator = this.iterator();
-    var max = null;
-    var row;
 
     pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
-        var value = row.get(pattern);
+        value = row.get(pattern);
         if (max === null || (value !== null && value > max)) {
             max = value;
         }
@@ -121,9 +119,9 @@ HXLSource.prototype.getMax = function(pattern) {
  * Get a list of unique values for a tag
  */
 HXLSource.prototype.getValues = function(pattern) {
+    var row;
     var iterator = this.iterator();
     var value_map = {};
-    var row;
 
     pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
@@ -155,13 +153,14 @@ HXLDataset.prototype.constructor = HXLDataset;
  * Get an array of column definitions.
  */
 HXLDataset.prototype.getColumns = function() {
+    var cols, tags_index, tagspec, header;
     if (this._savedColumns == null) {
-        var cols = [];
-        var tags_index = this._getTagRowIndex();
+        cols = [];
+        tags_index = this._getTagRowIndex();
         if (tags_index > -1) {
             for (var i = 0; i < this._rawData[tags_index].length; i++) {
-                var tagspec = this._rawData[tags_index][i];
-                var header = null;
+                tagspec = this._rawData[tags_index][i];
+                header = null;
                 if (tags_index > 0) {
                     header = this._rawData[tags_index-1][i];
                 }
@@ -197,8 +196,9 @@ HXLDataset.prototype.iterator = function() {
  * Get the index of the tag row.
  */
 HXLDataset.prototype._getTagRowIndex = function() {
+    var i;
     if (this._tagRowIndex == null) {
-        for (var i = 0; i < 25 && i < this._rawData.length; i++) {
+        for (i = 0; i < 25 && i < this._rawData.length; i++) {
             if (this._isTagRow(this._rawData[i])) {
                 this._tagRowIndex = i;
                 return this._tagRowIndex;
@@ -211,9 +211,8 @@ HXLDataset.prototype._getTagRowIndex = function() {
 }
 
 HXLDataset.prototype._isTagRow = function(row) {
-    var seenTag = false;
-    var seenNonTag = false;
-    for (var i = 0; i < row.length; i++) {
+    var seenTag, seenNonTag, i;
+    for (i = 0; i < row.length; i++) {
         if (row[i]) {
             if (HXLTagPattern.parse(row[i])) {
                 seenTag = true;
@@ -253,9 +252,9 @@ HXLColumn.prototype.getDisplayTag = function() {
  * Parse a tag spec into its parts.
  */
 HXLColumn.parse = function(spec, header, use_exception) {
-    result = spec.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?\s*$/);
+    var result = spec.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?\s*$/);
+    var attributes = [];
     if (result) {
-        var attributes = []
         if (result[2]) {
             // filter out empty values
             attributes = result[2].split(/\s*\+/).filter(function(attribute) { return attribute; });
@@ -283,6 +282,7 @@ function HXLTagPattern(tag, include_attributes, exclude_attributes) {
 }
 
 HXLTagPattern.prototype.match = function(column) {
+    var attribute, i;
 
     // tags must match
     if (this.tag != column.tag) {
@@ -309,15 +309,16 @@ HXLTagPattern.prototype.match = function(column) {
 }
 
 HXLTagPattern.parse = function(pattern, use_exception) {
+    var result, include_attributes, exclude_attributes, attribute_specs, i;
     if (pattern instanceof HXLTagPattern) {
         // If this is already parsed, then just return it.
         return pattern;
     } else {
-        var result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
+        result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
         if (result) {
-            var include_attributes = [];
-            var exclude_attributes = [];
-            var attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
+            include_attributes = [];
+            exclude_attributes = [];
+            attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
             for (i = 0; i < attribute_specs.length; i += 2) {
                 if (attribute_specs[i] == "+") {
                     include_attributes.push(attribute_specs[i+1]);
@@ -361,8 +362,9 @@ function HXLRow(values, columns) {
  * Look up a value by tag.
  */
 HXLRow.prototype.get = function(pattern) {
+    var i;
     pattern = HXLTagPattern.parse(pattern, true);
-    for (var i = 0; i < this.columns.length && i < this.values.length; i++) {
+    for (i = 0; i < this.columns.length && i < this.values.length; i++) {
         if (pattern.match(this.columns[i])) {
             return this.values[i];
         }
@@ -374,9 +376,10 @@ HXLRow.prototype.get = function(pattern) {
  * Look up all values with a specific tag.
  */
 HXLRow.prototype.getAll = function(pattern) {
-    pattern = HXLTagPattern.parse(pattern, true);
-    values = [];
-    for (var i = 0; i < this.columns.length && i < this.values.length; i++) {
+    var i;
+    var pattern = HXLTagPattern.parse(pattern, true);
+    var values = [];
+    for (i = 0; i < this.columns.length && i < this.values.length; i++) {
         if (pattern.match(this.columns[i])) {
             values.push(this.values[i]);
         }
