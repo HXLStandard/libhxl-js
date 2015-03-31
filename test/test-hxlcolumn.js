@@ -1,23 +1,7 @@
 /**
- * Unit tests for libhxl-js
- *
- * Run in your browser by opening the file index.html
- *
- * Started October 2014 by David Megginson
+ * HXLColumn tests
  */
 
-var TEST_DATA = [
-    ['Organisation', 'Sector', 'Province'],
-    ['#org', '#sector', '#adm1'],
-    ['Org 1', 'WASH', 'Coastal Province'],
-    ['Org 2', 'Health', 'Mountain Province'],
-    ['Org 3', 'Protection', 'Coastal Province']
-];
-
-
-/**
- * HXLDataset tests
- */
 QUnit.module("HXLColumn", {
     setup: function () {
         this.column = HXLColumn.parse("#adm1+code+pcode", "Region");

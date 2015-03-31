@@ -1,23 +1,7 @@
 /**
- * Unit tests for libhxl-js
- *
- * Run in your browser by opening the file index.html
- *
- * Started October 2014 by David Megginson
+ * HXLTagPattern tests
  */
 
-var TEST_DATA = [
-    ['Organisation', 'Sector', 'Province'],
-    ['#org', '#sector', '#adm1'],
-    ['Org 1', 'WASH', 'Coastal Province'],
-    ['Org 2', 'Health', 'Mountain Province'],
-    ['Org 3', 'Protection', 'Coastal Province']
-];
-
-
-/**
- * HXLDataset tests
- */
 QUnit.module("HXLTagPattern", {
     setup: function () {
         this.pattern = HXLTagPattern.parse("#adm1+code-iso");
@@ -57,7 +41,5 @@ QUnit.test("bad pattern", function(assert) {
     }
     assert.ok(seen_exception);
 });
-
-
 
 // end

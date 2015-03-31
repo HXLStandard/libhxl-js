@@ -295,7 +295,7 @@ HXLRow.prototype.get = function(pattern) {
 /**
  * Look up all values with a specific tag.
  */
-HXLRow.prototype.getAll = function(tag) {
+HXLRow.prototype.getAll = function(pattern) {
     if (typeof pattern !== "object") {
         pattern = HXLTagPattern.parse(pattern, true);
     }

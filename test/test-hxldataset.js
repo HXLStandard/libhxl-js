@@ -1,9 +1,5 @@
 /**
- * Unit tests for libhxl-js
- *
- * Run in your browser by opening the file index.html
- *
- * Started October 2014 by David Megginson
+ * HXLDataset tests
  */
 
 var TEST_DATA = [
@@ -14,10 +10,6 @@ var TEST_DATA = [
     ['Org 3', 'Protection', 'Coastal Province']
 ];
 
-
-/**
- * HXLDataset tests
- */
 QUnit.module("HXLDataset", {
     setup: function () {
         this.dataset = new HXLDataset(TEST_DATA);
