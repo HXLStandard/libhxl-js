@@ -245,7 +245,7 @@ HXLTagPattern.prototype.match = function(column) {
 }
 
 HXLTagPattern.parse = function(pattern, use_exception) {
-    var result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
+    var result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
     if (result) {
         var include_attributes = [];
         var exclude_attributes = [];
