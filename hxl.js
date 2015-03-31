@@ -87,12 +87,14 @@ HXLDataset.prototype.getColumns = function() {
 /**
  * Get the minimum value for a column
  */
-HXLDataset.prototype.getMin = function(tag) {
+HXLDataset.prototype.getMin = function(pattern) {
     var iterator = this.iterator();
     var min = null;
     var row;
+
+    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
-        var value = row.get(tag);
+        var value = row.get(pattern);
         if (min === null || (value !== null && value < min)) {
             min = value;
         }
@@ -103,12 +105,14 @@ HXLDataset.prototype.getMin = function(tag) {
 /**
  * Get the minimum value for a column
  */
-HXLDataset.prototype.getMax = function(tag) {
+HXLDataset.prototype.getMax = function(pattern) {
     var iterator = this.iterator();
     var max = null;
     var row;
+
+    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
-        var value = row.get(tag);
+        var value = row.get(pattern);
         if (max === null || (value !== null && value > max)) {
             max = value;
         }
@@ -119,11 +123,14 @@ HXLDataset.prototype.getMax = function(tag) {
 /**
  * Get a list of unique values for a tag
  */
-HXLDataset.prototype.getValues = function(tag) {
+HXLDataset.prototype.getValues = function(pattern) {
     var iterator = this.iterator();
     var value_map = {};
+    var row;
+
+    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
-        value_map[row.get(tag)] = true;
+        value_map[row.get(pattern)] = true;
     }
     return Object.keys(value_map);
 }
@@ -165,16 +172,17 @@ HXLDataset.prototype._getTagRowIndex = function() {
 
 HXLDataset.prototype._isTagRow = function(row) {
     var seenTag = false;
+    var seenNonTag = false;
     for (var i = 0; i < row.length; i++) {
         if (row[i]) {
-            if (row[i][0] == '#') {
+            if (HXLTagPattern.parse(row[i])) {
                 seenTag = true;
             } else {
-                return false;
+                seenNonTag = true;
             }
         }
     }
-    return seenTag;
+    return (seenTag && !seenNonTag);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -261,24 +269,40 @@ HXLTagPattern.prototype.match = function(column) {
 }
 
 HXLTagPattern.parse = function(pattern, use_exception) {
-    var result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
-    if (result) {
-        var include_attributes = [];
-        var exclude_attributes = [];
-        var attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
-        for (i = 0; i < attribute_specs.length; i += 2) {
-            if (attribute_specs[i] == "+") {
-                include_attributes.push(attribute_specs[i+1]);
-            } else {
-                exclude_attributes.push(attribute_specs[i+1]);
-            }
-        }
-        return new HXLTagPattern(result[1], include_attributes, exclude_attributes);
-    } else if (use_exception) {
-        throw "Bad tag pattern: " + pattern;
+    if (pattern instanceof HXLTagPattern) {
+        // If this is already parsed, then just return it.
+        return pattern;
     } else {
-        return null;
+        var result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
+        if (result) {
+            var include_attributes = [];
+            var exclude_attributes = [];
+            var attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
+            for (i = 0; i < attribute_specs.length; i += 2) {
+                if (attribute_specs[i] == "+") {
+                    include_attributes.push(attribute_specs[i+1]);
+                } else {
+                    exclude_attributes.push(attribute_specs[i+1]);
+                }
+            }
+            return new HXLTagPattern(result[1], include_attributes, exclude_attributes);
+        } else if (use_exception) {
+            throw "Bad tag pattern: " + pattern;
+        } else {
+            return null;
+        }
     }
+}
+
+HXLTagPattern.toString = function() {
+    var s = this.tag;
+    if (this.include_tags) {
+        s += "+" + this.include_tags.join("+");
+    }
+    if (this.exclude_tags) {
+        s += "-" + this.exclude_tags.join("-");
+    }
+    return s;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -297,9 +321,7 @@ function HXLRow(values, columns) {
  * Look up a value by tag.
  */
 HXLRow.prototype.get = function(pattern) {
-    if (typeof pattern !== "object") {
-        pattern = HXLTagPattern.parse(pattern, true);
-    }
+    pattern = HXLTagPattern.parse(pattern, true);
     for (var i = 0; i < this.columns.length && i < this.values.length; i++) {
         if (pattern.match(this.columns[i])) {
             return this.values[i];
@@ -312,9 +334,7 @@ HXLRow.prototype.get = function(pattern) {
  * Look up all values with a specific tag.
  */
 HXLRow.prototype.getAll = function(pattern) {
-    if (typeof pattern !== "object") {
-        pattern = HXLTagPattern.parse(pattern, true);
-    }
+    pattern = HXLTagPattern.parse(pattern, true);
     values = [];
     for (var i = 0; i < this.columns.length && i < this.values.length; i++) {
         if (pattern.match(this.columns[i])) {
