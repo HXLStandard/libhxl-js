@@ -590,6 +590,10 @@ HXLCountFilter.prototype.iterator = function() {
     };
 }
 
+/**
+ * Monster ugly function to aggregate data.
+ * FIXME: can I decompose this into smaller parts?
+ */
 HXLCountFilter.prototype._aggregateData = function() {
     var row, key, values, value, entry, aggregates;
     var data_map = {};
@@ -600,28 +604,33 @@ HXLCountFilter.prototype._aggregateData = function() {
     // Make a unique map of data values
     while (row = iterator.next()) {
         key = this._makeKey(row);
+
+        // Always do a count
         if (data_map[key]) {
             data_map[key] += 1;
         } else {
             data_map[key] = 1;
         }
 
-        // Aggregate if requested
+        // Aggregate numeric values if requested
         if (this.aggregate) {
+            // try parsing, and proceed only if it's numeric
             value = parseFloat(row.get(this.aggregate));
             if (!isNaN(value)) {
-                if (aggregate_map[key]) {
-                    entry = aggregate_map[key];
+                entry = aggregate_map[key];
+                if (entry) {
+                    // Not the first value
                     entry.total++;
-                    entry.avg = (entry.avg * (entry.total - 1) + value) / entry.total;
                     entry.sum += value;
+                    entry.avg = (entry.avg * (entry.total - 1) + value) / entry.total;
                     entry.min = (value < entry.min ? value : entry.min);
                     entry.max = (value > entry.max ? value : entry.max);
                 } else {
+                    // the first value
                     aggregate_map[key] = {
                         total: 1,
-                        avg: value,
                         sum: value,
+                        avg: value,
                         min: value,
                         max: value
                     }
@@ -632,7 +641,14 @@ HXLCountFilter.prototype._aggregateData = function() {
 
     // Generate the data from the map
     for (key in data_map) {
+
+        // Retrieve the values from the key
         values = key.split("\0");
+
+        // Add the count
+        values.push(data_map[key]);
+
+        // Add other aggregates if requested
         if (this.aggregate) {
             entry = aggregate_map[key];
             if (entry) {
@@ -648,10 +664,12 @@ HXLCountFilter.prototype._aggregateData = function() {
                 ]);
             }
         }
-        values.push(data_map[key]);
+
+        // Row is finished.
         data.push(values);
     }
 
+    // return all the rows
     return data;
 }
 

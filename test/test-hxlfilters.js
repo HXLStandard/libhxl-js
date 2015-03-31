@@ -77,7 +77,7 @@ QUnit.test("test numeric aggregation", function(assert) {
     var filter = new HXLCountFilter(source, ['#adm1'], '#count_num');
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.rows.map(function (row) { return row.values; }), [
-        ['Coastal Province', 2, 1, 1, 1, 2],
+        ['Coastal Province', 2, 2, 1, 1, 1],
         ['Mountain Province', 1, 1, 1, 1, 1]
     ]);
     assert.deepEqual(filter.columns.map(
