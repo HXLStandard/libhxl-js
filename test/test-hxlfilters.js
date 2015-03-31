@@ -20,11 +20,15 @@ QUnit.module("HXLFilters", {
     }
 });
 
+// HXLFilter
+
 QUnit.test("identity filter", function(assert) {
     var filter = new HXLFilter(this.dataset);
     assert.deepEqual(filter.columns, this.dataset.columns);
     assert.deepEqual(filter.rows, this.dataset.rows);
 });
+
+// HXLSelectFilter
 
 QUnit.test("select filter value string predicate", function(assert) {
     var filter = new HXLSelectFilter(this.dataset, [
@@ -48,6 +52,25 @@ QUnit.test("select filter row predicate", function(assert) {
         [null, function(row) { return (row.get('#org') == 'Org 1' && row.get('#adm1') == 'Coastal Province'); }]
     ]);
     assert.equal(filter.rows.length, 1);
+});
+
+// HXLCountFilter
+
+QUnit.test("count filter single column", function(assert) {
+    var filter = new HXLCountFilter(this.dataset, ['#adm1']);
+    assert.equal(filter.rows.length, 2);
+    assert.deepEqual(filter.columns.map(
+        function (col) { return col.displayTag; }
+    ), ['#adm1', '#count_num']);
+});
+
+QUnit.test("count filter multiple columns", function(assert) {
+    var filter = new HXLCountFilter(this.dataset, ['#sector', '#adm1']);
+    assert.equal(filter.rows.length, 3);
+    console.log(filter.rows);
+    assert.deepEqual(filter.columns.map(
+        function (col) { return col.displayTag; }
+    ), ['#sector+cluster', '#adm1', '#count_num']);
 });
 
 // end

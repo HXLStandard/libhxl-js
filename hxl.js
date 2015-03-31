@@ -313,6 +313,12 @@ HXLTagPattern.parse = function(pattern, use_exception) {
     if (pattern instanceof HXLTagPattern) {
         // If this is already parsed, then just return it.
         return pattern;
+    } else if (!pattern) {
+        if (use_exception) {
+            throw new Error("No tag pattern provided");
+        } else {
+            return null;
+        }
     } else {
         result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
         if (result) {
@@ -511,4 +517,102 @@ HXLSelectFilter.prototype._try_predicates = function(row) {
         }
     }
     return false;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+// HXLCountFilter class
+////////////////////////////////////////////////////////////////////////
+
+function HXLCountFilter(source, patterns, aggregate) {
+    HXLFilter.call(this, source);
+    if (patterns) {
+        this.patterns = patterns.map(function (pattern) { return HXLTagPattern.parse(pattern, true); });
+    } else {
+        throw new Error("No tag patterns specified");
+    }
+    if (aggregate) {
+        this.aggregate = HXLTagPattern.parse(aggregate, true);
+    } else {
+        this.aggregate = null;
+    }
+}
+
+HXLCountFilter.prototype = Object.create(HXLFilter.prototype);
+HXLCountFilter.prototype.constructor = HXLCountFilter;
+
+/**
+ * Return the columns for the aggregation.
+ */
+HXLCountFilter.prototype.getColumns = function() {
+    if (!this._savedColumns) {
+        var cols = [];
+        var indices = [];
+        for (var i = 0; i < this.source.columns.length; i++) {
+            for (var j = 0; j < this.patterns.length; j++) {
+                if (this.patterns[j].match(this.source.columns[i])) {
+                    cols.push(this.source.columns[i]);
+                    indices.push(i);
+                    break;
+                }
+            }
+        }
+        cols.push(HXLColumn.parse('#count_num'));
+        this._savedColumns = cols;
+        this._savedIndices = indices;
+    }
+    return this._savedColumns;
+}
+
+/**
+ * Iterate through aggregated values.
+ */
+HXLCountFilter.prototype.iterator = function() {
+    var columns = this.columns; // will trigger lazy column creation
+    var data = this._aggregateData();
+    var pos = 0;
+    return {
+        next: function () {
+            if (pos < data.length) {
+                return new HXLRow(data[pos++], columns);
+            } else {
+                return null;
+            }
+        }
+    };
+}
+
+HXLCountFilter.prototype._aggregateData = function() {
+    var row, key, values;
+    var data_map = {};
+    var data = [];
+    var iterator = this.source.iterator();
+
+    // Make a unique map of data values
+    while (row = iterator.next()) {
+        key = this._makeKey(row);
+        if (data_map[key]) {
+            data_map[key] += 1;
+        } else {
+            data_map[key] = 1;
+        }
+    }
+
+    // Generate the data from the map
+    for (key in data_map) {
+        values = key.split("\0");
+        values.push(data_map[key]);
+        data.push(values);
+    }
+
+    return data;
+}
+
+HXLCountFilter.prototype._makeKey = function(row) {
+    var i, index;
+    var values = [];
+    for (i = 0; i < this._savedIndices.length; i++) {
+        values.push(row.values[this._savedIndices[i]]);
+    }
+    return values.join("\0");
 }
