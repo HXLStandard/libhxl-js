@@ -2,18 +2,17 @@
  * HXLDataset tests
  */
 
-var TEST_DATA = [
-    ['Pointless header'],
-    ['Organisation', 'Sector', 'Province'],
-    ['#org', '#sector+cluster', '#adm1'],
-    ['Org 1', 'WASH', 'Coastal Province'],
-    ['Org 2', 'Health', 'Mountain Province'],
-    ['Org 3', 'Protection', 'Coastal Province']
-];
-
 QUnit.module("HXLDataset", {
     setup: function () {
-        this.dataset = new HXLDataset(TEST_DATA);
+        this.test_data = [
+            ['Pointless header'],
+            ['Organisation', 'Sector', 'Province'],
+            ['#org', '#sector+cluster', '#adm1'],
+            ['Org 1', 'WASH', 'Coastal Province'],
+            ['Org 2', 'Health', 'Mountain Province'],
+            ['Org 3', 'Protection', 'Coastal Province']
+        ];
+        this.dataset = new HXLDataset(this.test_data);
     }
 });
 
@@ -22,21 +21,21 @@ QUnit.test("dataset created", function(assert) {
 });
 
 QUnit.test("headers", function(assert) {
-    assert.deepEqual(this.dataset.headers, TEST_DATA[1]);
+    assert.deepEqual(this.dataset.headers, this.test_data[1]);
 });
 
 QUnit.test("tags", function(assert) {
-    assert.notDeepEqual(this.dataset.tags, TEST_DATA[2]);
-    assert.deepEqual(this.dataset.displayTags, TEST_DATA[2]);
+    assert.notDeepEqual(this.dataset.tags, this.test_data[2]);
+    assert.deepEqual(this.dataset.displayTags, this.test_data[2]);
 });
 
 QUnit.test("columns", function(assert) {
-    assert.deepEqual(this.dataset.columns.map(function (col) { return col.header; }), TEST_DATA[1]);
-    assert.deepEqual(this.dataset.columns.map(function (col) { return col.displayTag; }), TEST_DATA[2]);
+    assert.deepEqual(this.dataset.columns.map(function (col) { return col.header; }), this.test_data[1]);
+    assert.deepEqual(this.dataset.columns.map(function (col) { return col.displayTag; }), this.test_data[2]);
 });
 
 QUnit.test("rows", function(assert) {
-    assert.deepEqual(this.dataset.rows.map(function (row) { return row.values; }), TEST_DATA.slice(3));
+    assert.deepEqual(this.dataset.rows.map(function (row) { return row.values; }), this.test_data.slice(3));
 });
 
 QUnit.test("iterator", function(assert) {
@@ -44,7 +43,7 @@ QUnit.test("iterator", function(assert) {
     var index = 3;
     var row = null;
     while (row = iterator.next()) {
-        assert.deepEqual(row.values, TEST_DATA[index]);
+        assert.deepEqual(row.values, this.test_data[index]);
         index++;
     }
 });

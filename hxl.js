@@ -391,34 +391,125 @@ HXLRow.prototype.getAll = function(pattern) {
 // HXLFilter base class (override for specific filters).
 ////////////////////////////////////////////////////////////////////////
 
-function HXLFilter(dataset) {
-    this.dataset = dataset;
-    Object.defineProperty(this, 'headers', {
-        enumerable: true,
-        get: HXLDataset.prototype.getHeaders
-    });
-    Object.defineProperty(this, 'tags', {
-        enumerable: true,
-        get: HXLDataset.prototype.getTags
-    });
-    Object.defineProperty(this, 'columns', {
-        enumerable: true,
-        get: HXLDataset.prototype.getColumns
-    });
+function HXLFilter(source) {
+    HXLSource.call(this);
+    this.source = source;
 }
 
-HXLFilter.prototype.getHeaders = function() {
-    return this.dataset.getHeaders();
-}
-
-HXLFilter.prototype.getTags = function() {
-    return this.dataset.getTags();
-}
+HXLFilter.prototype = Object.create(HXLSource.prototype);
+HXLFilter.prototype.constructor = HXLFilter;
 
 HXLFilter.prototype.getColumns = function() {
-    return this.dataset.getColumns();
+    return this.source.getColumns();
 }
 
 HXLFilter.prototype.iterator = function() {
-    return this.dataset.iterator();
+    return this.source.iterator();
+}
+
+
+////////////////////////////////////////////////////////////////////////
+// HXLSelectFilter class
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * HXL filter class to select rows from a source.
+ *
+ * Usage:
+ *
+ * // select all rows where #adm1 is the Coastal Region
+ * // *or* the population is greater than 1,000
+ * var filter = new HXLSelectFilter(source, [
+ *   ['#adm1', 'Coastal Region'],
+ *   ['#people_num', function(v) { return v > 1000; }]
+ * ]);
+ *
+ * Predicates are always "OR"'d together. If you need
+ * a logical "AND", then chain another select filter.
+ *
+ * @param source the HXLSource
+ * @param predicates a list of predicates, each of 
+ * which is a list of two items.
+ */
+function HXLSelectFilter(source, predicates) {
+    HXLFilter.call(this, source);
+    this.predicates = this._compile_predicates(predicates);
+    console.log(this.predicates);
+}
+
+HXLSelectFilter.prototype = Object.create(HXLFilter.prototype);
+HXLSelectFilter.prototype.constructor = HXLSelectFilter;
+
+/**
+ * Filtering iterator.
+ */
+HXLSelectFilter.prototype.iterator = function() {
+    var iterator = this.source.iterator();
+    var outer = this;
+    return {
+        next: function() {
+            var row;
+            while (row = iterator.next()) {
+                if (outer._try_predicates(row)) {
+                    return row;
+                }
+            }
+            return null;
+        }
+    }
+}
+
+/**
+ * Precompile the tag patterns in the predicates.
+ */
+HXLSelectFilter.prototype._compile_predicates = function(predicates) {
+    return predicates.map(function(predicate) {
+        if (predicate[0]) {
+            return [HXLTagPattern.parse(predicate[0]), predicate[1]];
+        } else {
+            return [null, predicate[1]];
+        }
+    });
+}
+
+/**
+ * Return success if _any_ of the predicates succeeds.
+ */
+HXLSelectFilter.prototype._try_predicates = function(row) {
+    var predicate;
+
+    // Try every predicate on the row
+    for (var i = 0; i < this.predicates.length; i++) {
+        predicate = this.predicates[i];
+
+        // If the first part is set, then it's a tag pattern
+        // test only the values with hashtags that match
+        if (predicate[0]) {
+            var values = row.getAll(predicate[0]);
+            for (var j = 0; j < values.length; j++) {
+                if (typeof predicate[1] == 'function') {
+                    // apply a function to the value
+                    if (predicate[1](values[i])) {
+                        return true;
+                    }
+                } else {
+                    // compare anything else to the value
+                    if (predicate[1] == values[i]) {
+                        return true;
+                    }
+                }
+            }
+        } 
+
+        // If the first part is not set, then it's a row predicate
+        // test the whole row at once
+        else {
+            if (typeof predicate[1] == 'function') {
+                return predicate[1](row);
+            } else {
+                throw new Error('Row predicates must be functions: ' + predicate[1]);
+            }
+        }
+    }
+    return false;
 }

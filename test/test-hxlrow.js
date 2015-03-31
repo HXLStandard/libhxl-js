@@ -2,13 +2,11 @@
  * HXLRow tests
  */
 
-COLUMNS = ["#org+funder", "#org+impl", "#adm1+code"];
-
-VALUES = ["Donor", "NGO", "Region"];
-
 QUnit.module("HXLRow", {
     setup: function () {
-        this.row = new HXLRow(VALUES, COLUMNS.map(function(spec) { return HXLColumn.parse(spec); }));
+        this.columns = ["#org+funder", "#org+impl", "#adm1+code"];
+        this.values = ["Donor", "NGO", "Region"];
+        this.row = new HXLRow(this.values, this.columns.map(function(spec) { return HXLColumn.parse(spec); }));
     }
 });
 
@@ -17,11 +15,11 @@ QUnit.test("row created", function(assert) {
 });
 
 QUnit.test("values", function(assert) {
-    assert.deepEqual(this.row.values, VALUES);
+    assert.deepEqual(this.row.values, this.values);
 });
 
 QUnit.test("columns", function(assert) {
-    assert.deepEqual(this.row.columns.map(function(col) { return col.displayTag; }), COLUMNS);
+    assert.deepEqual(this.row.columns.map(function(col) { return col.displayTag; }), this.columns);
 });
 
 QUnit.test("get one value", function(assert) {
