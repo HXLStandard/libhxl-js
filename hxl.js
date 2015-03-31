@@ -189,7 +189,7 @@ HXLColumn.prototype.displayTag = function() {
  * Parse a tag spec into its parts.
  */
 HXLColumn.parse = function(spec, header, use_exception) {
-    result = spec.match(/^(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?$/);
+    result = spec.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?\s*$/);
     if (result) {
         var attributes = []
         if (result[2]) {
