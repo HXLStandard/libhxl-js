@@ -67,10 +67,22 @@ QUnit.test("count filter single column", function(assert) {
 QUnit.test("count filter multiple columns", function(assert) {
     var filter = new HXLCountFilter(this.dataset, ['#sector', '#adm1']);
     assert.equal(filter.rows.length, 3);
-    console.log(filter.rows);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
     ), ['#sector+cluster', '#adm1', '#count_num']);
+});
+
+QUnit.test("test numeric aggregation", function(assert) {
+    var source = new HXLCountFilter(this.dataset, ['#sector', '#adm1']);
+    var filter = new HXLCountFilter(source, ['#adm1'], '#count_num');
+    assert.equal(filter.rows.length, 2);
+    assert.deepEqual(filter.rows.map(function (row) { return row.values; }), [
+        ['Coastal Province', 2, 1, 1, 1, 2],
+        ['Mountain Province', 1, 1, 1, 1, 1]
+    ]);
+    assert.deepEqual(filter.columns.map(
+        function (col) { return col.displayTag; }
+    ), ['#adm1', '#count_num', '#count_num+sum', '#count_num+avg', '#count_num+min', '#count_num+max']);
 });
 
 // end

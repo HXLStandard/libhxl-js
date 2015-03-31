@@ -545,9 +545,10 @@ HXLCountFilter.prototype.constructor = HXLCountFilter;
  * Return the columns for the aggregation.
  */
 HXLCountFilter.prototype.getColumns = function() {
+    var cols, indices, tagspec;
     if (!this._savedColumns) {
-        var cols = [];
-        var indices = [];
+        cols = [];
+        indices = [];
         for (var i = 0; i < this.source.columns.length; i++) {
             for (var j = 0; j < this.patterns.length; j++) {
                 if (this.patterns[j].match(this.source.columns[i])) {
@@ -558,6 +559,13 @@ HXLCountFilter.prototype.getColumns = function() {
             }
         }
         cols.push(HXLColumn.parse('#count_num'));
+        if (this.aggregate) {
+            tagspec = this.aggregate.tag;
+            cols.push(HXLColumn.parse(tagspec + '+sum'));
+            cols.push(HXLColumn.parse(tagspec + '+avg'));
+            cols.push(HXLColumn.parse(tagspec + '+min'));
+            cols.push(HXLColumn.parse(tagspec + '+max'));
+        }
         this._savedColumns = cols;
         this._savedIndices = indices;
     }
@@ -583,8 +591,9 @@ HXLCountFilter.prototype.iterator = function() {
 }
 
 HXLCountFilter.prototype._aggregateData = function() {
-    var row, key, values;
+    var row, key, values, value, entry, aggregates;
     var data_map = {};
+    var aggregate_map = {};
     var data = [];
     var iterator = this.source.iterator();
 
@@ -596,11 +605,49 @@ HXLCountFilter.prototype._aggregateData = function() {
         } else {
             data_map[key] = 1;
         }
+
+        // Aggregate if requested
+        if (this.aggregate) {
+            value = parseFloat(row.get(this.aggregate));
+            if (!isNaN(value)) {
+                if (aggregate_map[key]) {
+                    entry = aggregate_map[key];
+                    entry.total++;
+                    entry.avg = (entry.avg * (entry.total - 1) + value) / entry.total;
+                    entry.sum += value;
+                    entry.min = (value < entry.min ? value : entry.min);
+                    entry.max = (value > entry.max ? value : entry.max);
+                } else {
+                    aggregate_map[key] = {
+                        total: 1,
+                        avg: value,
+                        sum: value,
+                        min: value,
+                        max: value
+                    }
+                }
+            }
+        }
     }
 
     // Generate the data from the map
     for (key in data_map) {
         values = key.split("\0");
+        if (this.aggregate) {
+            entry = aggregate_map[key];
+            if (entry) {
+                values = values.concat([
+                    entry.sum,
+                    entry.avg,
+                    entry.min,
+                    entry.max
+                ]);
+            } else {
+                values = values.concat([
+                    '', '', '', ''
+                ]);
+            }
+        }
         values.push(data_map[key]);
         data.push(values);
     }
