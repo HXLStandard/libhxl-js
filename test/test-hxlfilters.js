@@ -26,26 +26,25 @@ QUnit.test("identity filter", function(assert) {
     assert.deepEqual(filter.rows, this.dataset.rows);
 });
 
-QUnit.test("select filter", function(assert) {
-    var filter;
-
-    // Test a string predicate
-    filter = new HXLSelectFilter(this.dataset, [
+QUnit.test("select filter value string predicate", function(assert) {
+    var filter = new HXLSelectFilter(this.dataset, [
         ['#adm1', 'Coastal Province']
     ]);
     assert.deepEqual(filter.columns, this.dataset.columns);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.getValues('#adm1'), ['Coastal Province']);
+});
 
-    // Test a function predicate
-    filter = new HXLSelectFilter(this.dataset, [
+QUnit.test("select filter value function predicate", function(assert) {
+    var filter = new HXLSelectFilter(this.dataset, [
         ['#sector+cluster', function(value) { return value != 'Protection'; }]
     ]);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.getValues('#sector'), ['WASH', 'Health']);
+});
 
-    // Test a full-row predicate
-    filter = new HXLSelectFilter(this.dataset, [
+QUnit.test("select filter row predicate", function(assert) {
+    var filter = new HXLSelectFilter(this.dataset, [
         [null, function(row) { return (row.get('#org') == 'Org 1' && row.get('#adm1') == 'Coastal Province'); }]
     ]);
     assert.equal(filter.rows.length, 1);

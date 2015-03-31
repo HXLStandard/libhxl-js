@@ -434,7 +434,6 @@ HXLFilter.prototype.iterator = function() {
 function HXLSelectFilter(source, predicates) {
     HXLFilter.call(this, source);
     this.predicates = this._compile_predicates(predicates);
-    console.log(this.predicates);
 }
 
 HXLSelectFilter.prototype = Object.create(HXLFilter.prototype);
