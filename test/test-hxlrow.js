@@ -21,7 +21,7 @@ QUnit.test("values", function(assert) {
 });
 
 QUnit.test("columns", function(assert) {
-    assert.deepEqual(this.row.columns.map(function(col) { return col.displayTag(); }), COLUMNS);
+    assert.deepEqual(this.row.columns.map(function(col) { return col.displayTag; }), COLUMNS);
 });
 
 QUnit.test("get one value", function(assert) {

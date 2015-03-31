@@ -18,11 +18,11 @@ QUnit.test("tag ok", function(assert) {
 });
 
 QUnit.test("include ok", function(assert) {
-    assert.deepEqual(['code'], this.pattern.include_attributes);
+    assert.deepEqual(this.pattern.include_attributes, ['code']);
 });
 
 QUnit.test("exclude ok", function(assert) {
-    assert.deepEqual(['iso'], this.pattern.exclude_attributes);
+    assert.deepEqual(this.pattern.exclude_attributes, ['iso']);
 });
 
 QUnit.test("positive match", function(assert) {
@@ -30,9 +30,9 @@ QUnit.test("positive match", function(assert) {
 });
 
 QUnit.test("bad pattern", function(assert) {
-
+    // no exception
     assert.ok(HXLTagPattern.parse("#abc+x=y") === null);
-
+    // exception requested
     var seen_exception = false;
     try {
         HXLTagPattern.parse("#abc+x=y", true);

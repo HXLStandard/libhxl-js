@@ -29,6 +29,10 @@ function HXLDataset(rawData) {
         enumerable: true,
         get: HXLDataset.prototype.getTags
     });
+    Object.defineProperty(this, 'displayTags', {
+        enumerable: true,
+        get: HXLDataset.prototype.getDisplayTags
+    });
     Object.defineProperty(this, 'columns', {
         enumerable: true,
         get: HXLDataset.prototype.getColumns
@@ -39,19 +43,21 @@ function HXLDataset(rawData) {
  * Get an array of string headers.
  */
 HXLDataset.prototype.getHeaders = function () {
-    index = this._getTagRowIndex();
-    if (index > 0) {
-        return this._rawData[index - 1];
-    } else {
-        return [];
-    }
+    return this.columns.map(function (col) { return col.header; });
 }
 
 /**
  * Get an array of tags.
  */
 HXLDataset.prototype.getTags = function () {
-    return this._rawData[this._getTagRowIndex()];
+    return this.columns.map(function (col) { return col.tag; });
+}
+
+/**
+ * Get an array of tags.
+ */
+HXLDataset.prototype.getDisplayTags = function () {
+    return this.columns.map(function (col) { return col.displayTag; });
 }
 
 /**
@@ -59,14 +65,20 @@ HXLDataset.prototype.getTags = function () {
  */
 HXLDataset.prototype.getColumns = function() {
     if (this._savedColumns == null) {
-        this._savedColumns = [];
-        for (var i = 0; i < this.tags.length; i++) {
-            tag = this.tags[i];
-            header = null;
-            if (i < this.headers.length) {
-                header = this.headers[i];
+        var cols = [];
+        var tags_index = this._getTagRowIndex();
+        if (tags_index > -1) {
+            for (var i = 0; i < this._rawData[tags_index].length; i++) {
+                var tagspec = this._rawData[tags_index][i];
+                var header = null;
+                if (tags_index > 0) {
+                    header = this._rawData[tags_index-1][i];
+                }
+                cols.push(HXLColumn.parse(tagspec, header, true));
             }
-            this._savedColumns.push(HXLColumn.parse(tag, header, true));
+            this._savedColumns = cols;
+        } else {
+            throw "No HXL hashtag row found.";
         }
     }
     return this._savedColumns;
@@ -176,12 +188,16 @@ function HXLColumn(tag, attributes, header) {
     this.tag = tag;
     this.attributes = attributes;
     this.header = header;
+    Object.defineProperty(this, 'displayTag', {
+        enumerable: true,
+        get: HXLColumn.prototype.getDisplayTag
+    });
 }
 
 /**
  * Create a display tagspec for the column.
  */
-HXLColumn.prototype.displayTag = function() {
+HXLColumn.prototype.getDisplayTag = function() {
     return [this.tag].concat(this.attributes.sort()).join('+');
 };
 

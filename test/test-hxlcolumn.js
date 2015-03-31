@@ -27,13 +27,13 @@ QUnit.test("attributes ok", function(assert) {
 });
 
 QUnit.test("display tag", function(assert) {
-    assert.equal(this.column.displayTag(), "#adm1+code+pcode");
+    assert.equal(this.column.displayTag, "#adm1+code+pcode");
 });
 
 QUnit.test("bad tag", function(assert) {
-
+    // no exception
     assert.ok(HXLColumn.parse("#0abc") === null);
-
+    // exception
     var seen_exception = false;
     try {
         HXLColumn.parse("#0abc", null, true);
