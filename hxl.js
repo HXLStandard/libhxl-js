@@ -11,54 +11,145 @@
 
 
 ////////////////////////////////////////////////////////////////////////
-// HXLDataset class
+// HXLSource class
 ////////////////////////////////////////////////////////////////////////
 
 /**
- * Top-level wrapper for a HXL dataset.
+ * Abstract base class for any HXL data source.
+ * Derived classes must define getColumns() and iterator()
  */
-function HXLDataset(rawData) {
-    this._rawData = rawData;
-    this._tagRowIndex = null;
-    this._savedColumns = null;
+function HXLSource() {
+    var prototype = Object.getPrototypeOf(this);
+    Object.defineProperty(this, 'columns', {
+        enumerable: true,
+        get: prototype.getColumns
+    });
+    Object.defineProperty(this, 'rows', {
+        enumerable: true,
+        get: prototype.getRows
+    });
     Object.defineProperty(this, 'headers', {
         enumerable: true,
-        get: HXLDataset.prototype.getHeaders
+        get: prototype.getHeaders
     });
     Object.defineProperty(this, 'tags', {
         enumerable: true,
-        get: HXLDataset.prototype.getTags
+        get: prototype.getTags
     });
     Object.defineProperty(this, 'displayTags', {
         enumerable: true,
-        get: HXLDataset.prototype.getDisplayTags
+        get: prototype.getDisplayTags
     });
-    Object.defineProperty(this, 'columns', {
-        enumerable: true,
-        get: HXLDataset.prototype.getColumns
-    });
+}
+
+/**
+ * Get an array of row objects.
+ *
+ * This method might be highly inefficient, depending on the
+ * implementation in the derived class. Normally, it's best
+ * to go through the rows using an iterator.
+ *
+ * @return An array of HXLRow objects.
+ */
+HXLSource.prototype.getRows = function () {
+    var rows = [];
+    var iterator = this.iterator();
+    while (row = iterator.next()) {
+        rows.push(row);
+    }
+    return rows;
 }
 
 /**
  * Get an array of string headers.
  */
-HXLDataset.prototype.getHeaders = function () {
+HXLSource.prototype.getHeaders = function () {
     return this.columns.map(function (col) { return col.header; });
 }
 
 /**
  * Get an array of tags.
  */
-HXLDataset.prototype.getTags = function () {
+HXLSource.prototype.getTags = function () {
     return this.columns.map(function (col) { return col.tag; });
 }
 
 /**
- * Get an array of tags.
+ * Get an array of tagspecs.
  */
-HXLDataset.prototype.getDisplayTags = function () {
+HXLSource.prototype.getDisplayTags = function () {
     return this.columns.map(function (col) { return col.displayTag; });
 }
+
+/**
+ * Get the minimum value for a column
+ */
+HXLSource.prototype.getMin = function(pattern) {
+    var iterator = this.iterator();
+    var min = null;
+    var row;
+
+    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
+    while (row = iterator.next()) {
+        var value = row.get(pattern);
+        if (min === null || (value !== null && value < min)) {
+            min = value;
+        }
+    }
+    return min;
+}
+
+/**
+ * Get the minimum value for a column
+ */
+HXLSource.prototype.getMax = function(pattern) {
+    var iterator = this.iterator();
+    var max = null;
+    var row;
+
+    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
+    while (row = iterator.next()) {
+        var value = row.get(pattern);
+        if (max === null || (value !== null && value > max)) {
+            max = value;
+        }
+    }
+    return max;
+}
+
+/**
+ * Get a list of unique values for a tag
+ */
+HXLSource.prototype.getValues = function(pattern) {
+    var iterator = this.iterator();
+    var value_map = {};
+    var row;
+
+    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
+    while (row = iterator.next()) {
+        value_map[row.get(pattern)] = true;
+    }
+    return Object.keys(value_map);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+// HXLDataset class
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * An original HXL dataset (including the raw data)
+ * Derived from HXLSource
+ */
+function HXLDataset(rawData) {
+    HXLSource.call(this);
+    this._rawData = rawData;
+    this._tagRowIndex = null;
+    this._savedColumns = null;
+}
+
+HXLDataset.prototype = Object.create(HXLSource.prototype);
+HXLDataset.prototype.constructor = HXLDataset;
 
 /**
  * Get an array of column definitions.
@@ -82,57 +173,6 @@ HXLDataset.prototype.getColumns = function() {
         }
     }
     return this._savedColumns;
-}
-
-/**
- * Get the minimum value for a column
- */
-HXLDataset.prototype.getMin = function(pattern) {
-    var iterator = this.iterator();
-    var min = null;
-    var row;
-
-    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
-    while (row = iterator.next()) {
-        var value = row.get(pattern);
-        if (min === null || (value !== null && value < min)) {
-            min = value;
-        }
-    }
-    return min;
-}
-
-/**
- * Get the minimum value for a column
- */
-HXLDataset.prototype.getMax = function(pattern) {
-    var iterator = this.iterator();
-    var max = null;
-    var row;
-
-    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
-    while (row = iterator.next()) {
-        var value = row.get(pattern);
-        if (max === null || (value !== null && value > max)) {
-            max = value;
-        }
-    }
-    return max;
-}
-
-/**
- * Get a list of unique values for a tag
- */
-HXLDataset.prototype.getValues = function(pattern) {
-    var iterator = this.iterator();
-    var value_map = {};
-    var row;
-
-    pattern = HXLTagPattern.parse(pattern); // more efficient to precompile
-    while (row = iterator.next()) {
-        value_map[row.get(pattern)] = true;
-    }
-    return Object.keys(value_map);
 }
 
 /**
