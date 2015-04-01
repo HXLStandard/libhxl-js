@@ -17,14 +17,55 @@
  * Root hxl object, from which everything else starts.
  */
 var hxl = {
-    classes: {}
+    classes: {},
+    loggers: []
 };
+
+/**
+ * Log a warning or error message.
+ *
+ * Add logger functions to hxl.loggers.
+ *
+ * @param message The message to log.
+ */
+hxl.log = function (message) {
+    var i;
+    for (i = 0; i < hxl.loggers.length; i++) {
+        hxl.loggers[i](message);
+    }
+}
 
 /**
  * Wrap a JavaScript array as a HXL dataset.
  */
 hxl.wrap = function (rawData) {
     return new hxl.classes.Dataset(rawData);
+}
+
+/**
+ * Load a remote HXL dataset asynchronously.
+ *
+ * The callback takes a single argument, which is
+ * the HXL data source (when successfully loaded).
+ *
+ * @param url The URL of the HXL dataset to load.
+ * @param callback The function to call when loaded.
+ */
+hxl.load = function (url, callback) {
+    if (typeof(Papa) != 'undefined' && typeof(Papa.parse) != 'undefined') {
+        Papa.parse(url, {
+            download: true,
+            skipEmptyLines: true,
+            complete: function (result) {
+                callback(hxl.wrap(result.data));
+            },
+            error: function (result) {
+                throw new Error(result.errors.join("\n"));
+            }
+        });
+    } else {
+        throw Error("No CSV parser available (tried Papa.parse)");
+    }
 }
 
 
@@ -258,7 +299,11 @@ hxl.classes.Dataset.prototype.getColumns = function() {
                 if (tags_index > 0) {
                     header = this._rawData[tags_index-1][i];
                 }
-                cols.push(hxl.classes.Column.parse(tagspec, header, true));
+                if (tagspec.match(/^\s*#.*/)) {
+                    cols.push(hxl.classes.Column.parse(tagspec, header));
+                } else {
+                    cols.push(null);
+                }
             }
             this._savedColumns = cols;
         } else {
@@ -308,7 +353,7 @@ hxl.classes.Dataset.prototype._isTagRow = function(row) {
     var seenTag, seenNonTag, i;
     for (i = 0; i < row.length; i++) {
         if (row[i]) {
-            if (hxl.classes.Pattern.parse(row[i])) {
+            if (row[i].match(/^\s*#.*$/) && hxl.classes.Pattern.parse(row[i])) {
                 seenTag = true;
             } else {
                 seenNonTag = true;
@@ -358,6 +403,7 @@ hxl.classes.Column.parse = function(spec, header, use_exception) {
     } else if (use_exception) {
         throw "Bad tag specification: " + spec;
     } else {
+        hxl.log("Bad tag specification: " + spec);
         return null;
     }
 }
@@ -431,6 +477,7 @@ hxl.classes.Pattern.parse = function(pattern, use_exception) {
         } else if (use_exception) {
             throw "Bad tag pattern: " + pattern;
         } else {
+            hxl.log("Bad tag pattern: " + pattern);
             return null;
         }
     }
