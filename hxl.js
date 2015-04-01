@@ -211,6 +211,11 @@ hxl.classes.Source.prototype.each = function(callback) {
 }
 
 /**
+ * Alias each() to forEach()
+ */
+hxl.classes.Source.prototype.forEach = hxl.classes.Source.prototype.each;
+
+/**
  * Filter rows to include only those that match at least one predicate.
  *
  * @param predicates a list of predicates.  See
