@@ -16,7 +16,7 @@ QUnit.module("hxl.classes.BaseFilters", {
             ['Org 2', 'Health', 'Mountain Province'],
             ['Org 3', 'Protection', 'Coastal Province']
         ];
-        this.dataset = new hxl.classes.Dataset(this.test_data);
+        this.dataset = hxl.wrap(this.test_data);
     }
 });
 
