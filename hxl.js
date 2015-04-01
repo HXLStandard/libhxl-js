@@ -9,15 +9,23 @@
  * @date Started 2015-02
  */
 
+////////////////////////////////////////////////////////////////////////
+// Root object
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * Root hxl object, from which everything else starts.
+ */
 var hxl = {
-
-    classes: {},
-
-    wrap: function (rawData) {
-        return new hxl.classes.Dataset(rawData);
-    }
-
+    classes: {}
 };
+
+/**
+ * Wrap a JavaScript array as a HXL dataset.
+ */
+hxl.wrap = function (rawData) {
+    return new hxl.classes.Dataset(rawData);
+}
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -168,19 +176,28 @@ hxl.classes.Source.prototype.each = function(callback) {
  * hxl.classes.SelectFilter for details.
  * @return a new data source, including only selected data rows.
  */
-hxl.classes.Source.prototype.select = function(predicates) {
+hxl.classes.Source.prototype.withRows = function(predicates) {
     return new hxl.classes.SelectFilter(this, predicates);
 }
 
 /**
  * Return this data source wrapped in a hxl.classes.CutFilter
  *
- * @param blacklist a list of tag patterns that may not be included.
  * @param whitelist (optional) if present, only tag patterns in this list may be included.
  * @return a new data source, including only selected columns.
  */
-hxl.classes.Source.prototype.cut = function(blacklist, whitelist) {
-    return new hxl.classes.CutFilter(this, blacklist, whitelist);
+hxl.classes.Source.prototype.withColumns = function(whitelist) {
+    return new hxl.classes.CutFilter(this, null, whitelist);
+}
+
+/**
+ * Return this data source wrapped in a hxl.classes.CutFilter
+ *
+ * @param blacklist a list of tag patterns that may not be included.
+ * @return a new data source, including only selected columns.
+ */
+hxl.classes.Source.prototype.withoutColumns = function(blacklist) {
+    return new hxl.classes.CutFilter(this, blacklist, null);
 }
 
 /**

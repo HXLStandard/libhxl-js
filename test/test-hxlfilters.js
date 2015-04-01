@@ -40,8 +40,8 @@ QUnit.test("select filter value string predicate", function(assert) {
     assert.deepEqual(filter.getValues('#adm1'), ['Coastal Province']);
 
     // test convenience methods
-    assert.deepEqual(filter.columns, this.dataset.select(predicates).columns);
-    assert.deepEqual(filter.values, this.dataset.select(predicates).values);
+    assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
+    assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
 });
 
 QUnit.test("select filter value function predicate", function(assert) {
@@ -56,8 +56,8 @@ QUnit.test("select filter value function predicate", function(assert) {
     assert.deepEqual(filter.getValues('#sector'), ['WASH', 'Health']);
 
     // test convenience methods
-    assert.deepEqual(filter.columns, this.dataset.select(predicates).columns);
-    assert.deepEqual(filter.values, this.dataset.select(predicates).values);
+    assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
+    assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
 });
 
 QUnit.test("select filter row predicate", function(assert) {
@@ -70,8 +70,8 @@ QUnit.test("select filter row predicate", function(assert) {
     assert.equal(filter.rows.length, 1);
 
     // test convenience methods
-    assert.deepEqual(filter.columns, this.dataset.select(predicates).columns);
-    assert.deepEqual(filter.values, this.dataset.select(predicates).values);
+    assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
+    assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
 });
 
 // hxl.classes.CutFilter
@@ -90,8 +90,8 @@ QUnit.test("cut filter whitelist", function(assert) {
     }));
 
     // test that the convenience methods work
-    assert.deepEqual(filter.columns, this.dataset.cut(blacklist, whitelist).columns);
-    assert.deepEqual(filter.values, this.dataset.cut(blacklist, whitelist).values);
+    assert.deepEqual(filter.columns, this.dataset.withColumns(whitelist).columns);
+    assert.deepEqual(filter.values, this.dataset.withColumns(whitelist).values);
 });
 
 QUnit.test("cut filter blacklist", function(assert) {
@@ -107,8 +107,8 @@ QUnit.test("cut filter blacklist", function(assert) {
     }));
 
     // test that the convenience methods work
-    assert.deepEqual(filter.columns, this.dataset.cut(blacklist).columns);
-    assert.deepEqual(filter.values, this.dataset.cut(blacklist).values);
+    assert.deepEqual(filter.columns, this.dataset.withoutColumns(blacklist).columns);
+    assert.deepEqual(filter.values, this.dataset.withoutColumns(blacklist).values);
 });
 
 // hxl.classes.CountFilter
