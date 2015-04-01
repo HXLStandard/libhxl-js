@@ -460,9 +460,9 @@ HXLFilter.prototype.iterator = function() {
  *
  * // select all rows where #adm1 is the Coastal Region
  * // *or* the population is greater than 1,000
- * var filter = new HXLSelectFilter(source, [
- *   ['#adm1', 'Coastal Region'],
- *   ['#people_num', function(v) { return v > 1000; }]
+ * var filter = new HXLSelectFilter(source,
+ *   { pattern: '#adm1', test: 'Coastal Region' },
+ *   { pattern: '#people_num', test: function(v) { return v > 1000; } }
  * ]);
  *
  * Predicates are always "OR"'d together. If you need
@@ -470,7 +470,7 @@ HXLFilter.prototype.iterator = function() {
  *
  * @param source the HXLSource
  * @param predicates a list of predicates, each of 
- * which is a list of two items.
+ * has a "test" property (and optionally, a "pattern" property).
  */
 function HXLSelectFilter(source, predicates) {
     HXLFilter.call(this, source);
@@ -506,13 +506,13 @@ HXLSelectFilter.prototype.iterator = function() {
  * Precompile the tag patterns in the predicates.
  */
 HXLSelectFilter.prototype._compile_predicates = function(predicates) {
-    return predicates.map(function(predicate) {
-        if (predicate[0]) {
-            return [HXLTagPattern.parse(predicate[0]), predicate[1]];
-        } else {
-            return [null, predicate[1]];
+    var i;
+    for (i = 0; i < predicates.length; i++) {
+        if (predicates[i].pattern) {
+            predicates[i].pattern = HXLTagPattern.parse(predicates[i].pattern);
         }
-    });
+    }
+    return predicates;
 }
 
 /**
@@ -527,17 +527,17 @@ HXLSelectFilter.prototype._try_predicates = function(row) {
 
         // If the first part is set, then it's a tag pattern
         // test only the values with hashtags that match
-        if (predicate[0]) {
-            var values = row.getAll(predicate[0]);
+        if (predicate.pattern) {
+            var values = row.getAll(predicate.pattern);
             for (var j = 0; j < values.length; j++) {
-                if (typeof predicate[1] == 'function') {
+                if (typeof predicate.test == 'function') {
                     // apply a function to the value
-                    if (predicate[1](values[i])) {
+                    if (predicate.test(values[i])) {
                         return true;
                     }
                 } else {
                     // compare anything else to the value
-                    if (predicate[1] == values[i]) {
+                    if (predicate.test == values[i]) {
                         return true;
                     }
                 }
@@ -547,10 +547,10 @@ HXLSelectFilter.prototype._try_predicates = function(row) {
         // If the first part is not set, then it's a row predicate
         // test the whole row at once
         else {
-            if (typeof predicate[1] == 'function') {
-                return predicate[1](row);
+            if (typeof predicate.test == 'function') {
+                return predicate.test(row);
             } else {
-                throw new Error('Row predicates must be functions: ' + predicate[1]);
+                throw new Error('Row predicates must be functions: ' + predicate.test);
             }
         }
     }
