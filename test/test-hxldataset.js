@@ -1,8 +1,8 @@
 /**
- * HXLDataset tests
+ * hxl.classes.Dataset tests
  */
 
-QUnit.module("HXLDataset", {
+QUnit.module("hxl.classes.Dataset", {
     setup: function () {
         this.test_data = [
             ['Pointless header'],
@@ -12,7 +12,7 @@ QUnit.module("HXLDataset", {
             ['Org 2', 'Health', 'Mountain Province'],
             ['Org 3', 'Protection', 'Coastal Province']
         ];
-        this.dataset = new HXLDataset(this.test_data);
+        this.dataset = new hxl.classes.Dataset(this.test_data);
     }
 });
 
@@ -46,6 +46,13 @@ QUnit.test("iterator", function(assert) {
         assert.deepEqual(row.values, this.test_data[index]);
         index++;
     }
+});
+
+QUnit.test("each", function(assert) {
+    var test_data = this.test_data;
+    assert.equal(this.dataset.each(function (row, dataset, rowNumber) {
+        assert.deepEqual(row.values, test_data[rowNumber + 3]);
+    }), 3);
 });
 
 QUnit.test("values", function(assert) {

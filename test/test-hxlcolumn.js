@@ -1,10 +1,10 @@
 /**
- * HXLColumn tests
+ * hxl.classes.Column tests
  */
 
-QUnit.module("HXLColumn", {
+QUnit.module("hxl.classes.Column", {
     setup: function () {
-        this.column = HXLColumn.parse("#adm1+code+pcode", "Region");
+        this.column = hxl.classes.Column.parse("#adm1+code+pcode", "Region");
     }
 });
 
@@ -32,11 +32,11 @@ QUnit.test("display tag", function(assert) {
 
 QUnit.test("bad tag", function(assert) {
     // no exception
-    assert.ok(HXLColumn.parse("#0abc") === null);
+    assert.ok(hxl.classes.Column.parse("#0abc") === null);
     // exception
     var seen_exception = false;
     try {
-        HXLColumn.parse("#0abc", null, true);
+        hxl.classes.Column.parse("#0abc", null, true);
     } catch (e) {
         seen_exception = true;
     }

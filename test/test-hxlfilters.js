@@ -3,10 +3,10 @@
 ////////////////////////////////////////////////////////////////////////
 
 /**
- * HXLFilter tests
+ * hxl.classes.BaseFilter tests
  */
 
-QUnit.module("HXLFilters", {
+QUnit.module("hxl.classes.BaseFilters", {
     setup: function () {
         this.test_data = [
             ['Pointless header'],
@@ -16,25 +16,25 @@ QUnit.module("HXLFilters", {
             ['Org 2', 'Health', 'Mountain Province'],
             ['Org 3', 'Protection', 'Coastal Province']
         ];
-        this.dataset = new HXLDataset(this.test_data);
+        this.dataset = new hxl.classes.Dataset(this.test_data);
     }
 });
 
-// HXLFilter
+// hxl.classes.BaseFilter
 
 QUnit.test("identity filter", function(assert) {
-    var filter = new HXLFilter(this.dataset);
+    var filter = new hxl.classes.BaseFilter(this.dataset);
     assert.deepEqual(filter.columns, this.dataset.columns);
     assert.deepEqual(filter.rows, this.dataset.rows);
 });
 
-// HXLSelectFilter
+// hxl.classes.SelectFilter
 
 QUnit.test("select filter value string predicate", function(assert) {
     var predicates = [
         { pattern: '#adm1', test: 'Coastal Province'}
     ];
-    var filter = new HXLSelectFilter(this.dataset, predicates);
+    var filter = new hxl.classes.SelectFilter(this.dataset, predicates);
     assert.deepEqual(filter.columns, this.dataset.columns);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.getValues('#adm1'), ['Coastal Province']);
@@ -51,7 +51,7 @@ QUnit.test("select filter value function predicate", function(assert) {
             test: function(value) { return value != 'Protection'; }
         }
     ];
-    var filter = new HXLSelectFilter(this.dataset, predicates);
+    var filter = new hxl.classes.SelectFilter(this.dataset, predicates);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.getValues('#sector'), ['WASH', 'Health']);
 
@@ -66,7 +66,7 @@ QUnit.test("select filter row predicate", function(assert) {
             test: function(row) { return (row.get('#org') == 'Org 1' && row.get('#adm1') == 'Coastal Province'); }
         }
     ];
-    var filter = new HXLSelectFilter(this.dataset, predicates);
+    var filter = new hxl.classes.SelectFilter(this.dataset, predicates);
     assert.equal(filter.rows.length, 1);
 
     // test convenience methods
@@ -74,12 +74,12 @@ QUnit.test("select filter row predicate", function(assert) {
     assert.deepEqual(filter.values, this.dataset.select(predicates).values);
 });
 
-// HXLCutFilter
+// hxl.classes.CutFilter
 
 QUnit.test("cut filter whitelist", function(assert) {
     var blacklist = [];
     var whitelist = ['#sector'];
-    var filter = new HXLCutFilter(this.dataset, blacklist, whitelist);
+    var filter = new hxl.classes.CutFilter(this.dataset, blacklist, whitelist);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
     }), ['#sector+cluster']);
@@ -96,7 +96,7 @@ QUnit.test("cut filter whitelist", function(assert) {
 
 QUnit.test("cut filter blacklist", function(assert) {
     var blacklist = ['#sector'];
-    var filter = new HXLCutFilter(this.dataset, blacklist);
+    var filter = new hxl.classes.CutFilter(this.dataset, blacklist);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
     }), ['#org', '#adm1']);
@@ -111,11 +111,11 @@ QUnit.test("cut filter blacklist", function(assert) {
     assert.deepEqual(filter.values, this.dataset.cut(blacklist).values);
 });
 
-// HXLCountFilter
+// hxl.classes.CountFilter
 
 QUnit.test("count filter single column", function(assert) {
     var patterns = ['#adm1'];
-    var filter = new HXLCountFilter(this.dataset, patterns);
+    var filter = new hxl.classes.CountFilter(this.dataset, patterns);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
@@ -128,7 +128,7 @@ QUnit.test("count filter single column", function(assert) {
 
 QUnit.test("count filter multiple columns", function(assert) {
     var patterns = ['#sector', '#adm1'];
-    var filter = new HXLCountFilter(this.dataset, patterns);
+    var filter = new hxl.classes.CountFilter(this.dataset, patterns);
     assert.equal(filter.rows.length, 3);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
@@ -140,10 +140,10 @@ QUnit.test("count filter multiple columns", function(assert) {
 });
 
 QUnit.test("test numeric aggregation", function(assert) {
-    var source = new HXLCountFilter(this.dataset, ['#sector', '#adm1']);
+    var source = new hxl.classes.CountFilter(this.dataset, ['#sector', '#adm1']);
     var patterns = ['#adm1'];
     var aggregate = '#count_num';
-    var filter = new HXLCountFilter(source, patterns, aggregate);
+    var filter = new hxl.classes.CountFilter(source, patterns, aggregate);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.rows.map(function (row) { return row.values; }), [
         ['Coastal Province', 2, 2, 1, 1, 1],

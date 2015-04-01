@@ -1,11 +1,11 @@
 /**
- * HXLTagPattern tests
+ * hxl.classes.Pattern tests
  */
 
-QUnit.module("HXLTagPattern", {
+QUnit.module("hxl.classes.Pattern", {
     setup: function () {
-        this.pattern = HXLTagPattern.parse("#adm1+code-iso");
-        this.column = HXLColumn.parse("#adm1+code+pcode", "Region");
+        this.pattern = hxl.classes.Pattern.parse("#adm1+code-iso");
+        this.column = hxl.classes.Column.parse("#adm1+code+pcode", "Region");
     }
 });
 
@@ -31,11 +31,11 @@ QUnit.test("positive match", function(assert) {
 
 QUnit.test("bad pattern", function(assert) {
     // no exception
-    assert.ok(HXLTagPattern.parse("#abc+x=y") === null);
+    assert.ok(hxl.classes.Pattern.parse("#abc+x=y") === null);
     // exception requested
     var seen_exception = false;
     try {
-        HXLTagPattern.parse("#abc+x=y", true);
+        hxl.classes.Pattern.parse("#abc+x=y", true);
     } catch (e) {
         seen_exception = true;
     }

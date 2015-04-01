@@ -1,12 +1,12 @@
 /**
- * HXLRow tests
+ * hxl.classes.Row tests
  */
 
-QUnit.module("HXLRow", {
+QUnit.module("hxl.classes.Row", {
     setup: function () {
         this.columns = ["#org+funder", "#org+impl", "#adm1+code"];
         this.values = ["Donor", "NGO", "Region"];
-        this.row = new HXLRow(this.values, this.columns.map(function(spec) { return HXLColumn.parse(spec); }));
+        this.row = new hxl.classes.Row(this.values, this.columns.map(function(spec) { return hxl.classes.Column.parse(spec); }));
     }
 });
 
