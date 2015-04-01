@@ -54,6 +54,22 @@ QUnit.test("select filter row predicate", function(assert) {
     assert.equal(filter.rows.length, 1);
 });
 
+// HXLCutFilter
+
+QUnit.test("cut filter whitelist", function(assert) {
+    var filter = new HXLCutFilter(this.dataset, [], ['#sector']);
+    assert.deepEqual(filter.columns.map(function (col) {
+        return col.displayTag;
+    }), ['#sector+cluster']);
+});
+
+QUnit.test("cut filter blacklist", function(assert) {
+    var filter = new HXLCutFilter(this.dataset, ['#sector'], []);
+    assert.deepEqual(filter.columns.map(function (col) {
+        return col.displayTag;
+    }), ['#org', '#adm1']);
+});
+
 // HXLCountFilter
 
 QUnit.test("count filter single column", function(assert) {

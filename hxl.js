@@ -521,6 +521,68 @@ HXLSelectFilter.prototype._try_predicates = function(row) {
 
 
 ////////////////////////////////////////////////////////////////////////
+// HXLCutFilter class
+////////////////////////////////////////////////////////////////////////
+
+function HXLCutFilter(source, blacklist, whitelist) {
+    HXLFilter.call(this, source);
+    if (blacklist) {
+        this.blacklist = blacklist.map(function (pattern) { return HXLTagPattern.parse(pattern, true); });
+    } else {
+        this.blacklist = [];
+    }
+    if (whitelist) {
+        this.whitelist = whitelist.map(function (pattern) { return HXLTagPattern.parse(pattern, true); });
+    } else {
+        this.whitelist = [];
+    }
+}
+
+HXLCutFilter.prototype = Object.create(HXLFilter.prototype);
+HXLCutFilter.prototype.constructor = HXLCutFilter;
+
+HXLCutFilter.prototype.getColumns = function() {
+    var column, columns, indices, i, j, include_tag;
+    if (typeof(this._savedColumns) == 'undefined') {
+        columns = [];
+        indices = [];
+
+        for (i = 0; i < this.source.columns.length; i++) {
+
+            column = this.source.columns[i];
+
+            // start by assuming we can include the columns
+            include_tag = true;
+
+            // check the blacklist
+            for (j = 0; j < this.blacklist.length; j++) {
+                if (this.blacklist[j].match(column)) {
+                    include_tag = false;
+                }
+            }
+
+            // check the whitelist (if present)
+            if (include_tag && this.whitelist) {
+                for (j = 0; j < this.whitelist.length; j++) {
+                    if (!this.whitelist[j].match(column)) {
+                        include_tag = false;
+                    }
+                }
+            }
+
+            if (include_tag) {
+                columns.push(column);
+                indices.push(i);
+            }
+        }
+        this._savedColumns = columns;
+        this._savedIndices = indices;
+    }
+    return this._savedColumns;
+}
+
+
+////////////////////////////////////////////////////////////////////////
 // HXLCountFilter class
 ////////////////////////////////////////////////////////////////////////
 
