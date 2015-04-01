@@ -130,6 +130,41 @@ HXLSource.prototype.getValues = function(pattern) {
     return Object.keys(value_map);
 }
 
+/**
+ * Return this data source wrapped in a HXLSelectFilter
+ *
+ * @param predicates a list of patterns and predicates.  See
+ * HXLSelectFilter for details.
+ * @return a new data source, including only selected data rows.
+ */
+HXLSource.prototype.select = function(predicates) {
+    return new HXLSelectFilter(this, predicates);
+}
+
+/**
+ * Return this data source wrapped in a HXLCutFilter
+ *
+ * @param blacklist a list of tag patterns that may not be included.
+ * @param whitelist (optional) if present, only tag patterns in this list may be included.
+ * @return a new data source, including only selected columns.
+ */
+HXLSource.prototype.cut = function(blacklist, whitelist) {
+    return new HXLCutFilter(this, blacklist, whitelist);
+}
+
+/**
+ * Return this data source wrapped in a HXLCountFilter
+ *
+ * @param patterns a list of tag patterns for which to count the
+ * unique combinations 
+ * @param aggregate (optional) a single numeric tag pattern for which
+ * to produce aggregate values
+ * @return a new data source, including the aggregated data.
+ */
+HXLSource.prototype.count = function(patterns, aggregate) {
+    return new HXLCountFilter(this, patterns, aggregate);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 // HXLDataset class
@@ -446,7 +481,10 @@ HXLSelectFilter.prototype = Object.create(HXLFilter.prototype);
 HXLSelectFilter.prototype.constructor = HXLSelectFilter;
 
 /**
- * Filtering iterator.
+ * Override HXLFIlter.iterator to return only select rows.
+ *
+ * @return an iterator object that will skip rows that fail to pass at
+ * least one of the predicates.
  */
 HXLSelectFilter.prototype.iterator = function() {
     var iterator = this.source.iterator();
@@ -524,13 +562,24 @@ HXLSelectFilter.prototype._try_predicates = function(row) {
 // HXLCutFilter class
 ////////////////////////////////////////////////////////////////////////
 
+/**
+ * HXL filter class to remove columns from a dataset.
+ *
+ * @param source the HXL data source (may be another filter).
+ * @param blacklist a list of HXL tagspecs that must not be included.
+ * @param whitelist if present, a list of the *only* HXL tagspecs allowed.
+ */
 function HXLCutFilter(source, blacklist, whitelist) {
     HXLFilter.call(this, source);
+
+    // pre-compile the blacklist
     if (blacklist) {
         this.blacklist = blacklist.map(function (pattern) { return HXLTagPattern.parse(pattern, true); });
     } else {
         this.blacklist = [];
     }
+
+    // pre-compile the whitelist
     if (whitelist) {
         this.whitelist = whitelist.map(function (pattern) { return HXLTagPattern.parse(pattern, true); });
     } else {
@@ -541,12 +590,23 @@ function HXLCutFilter(source, blacklist, whitelist) {
 HXLCutFilter.prototype = Object.create(HXLFilter.prototype);
 HXLCutFilter.prototype.constructor = HXLCutFilter;
 
+/**
+ * Override HXLFilter.getColumns to return only the allowed columns.
+ *
+ * This method triggers lazy processing that also saves the indices for
+ * slicing the data itself.
+ *
+ * @return a list of HXLColumn objects.
+ */
 HXLCutFilter.prototype.getColumns = function() {
     var column, columns, indices, i, j, include_tag;
     if (typeof(this._savedColumns) == 'undefined') {
+
+        // we haven't extracted the columns before, so do it now
         columns = [];
         indices = [];
 
+        // check all of the columns against the blacklist & whiteslist
         for (i = 0; i < this.source.columns.length; i++) {
 
             column = this.source.columns[i];
@@ -570,15 +630,48 @@ HXLCutFilter.prototype.getColumns = function() {
                 }
             }
 
+            // if we survived to here, save the column and index
             if (include_tag) {
                 columns.push(column);
                 indices.push(i);
             }
         }
+
+        // save the columns and indices for future use
         this._savedColumns = columns;
         this._savedIndices = indices;
     }
+
+    // return the saved columns
     return this._savedColumns;
+}
+
+/**
+ * Override HXLFilter.iterator to get data with some columns removed.
+ *
+ * @return an iterator object to read the modified data rows.
+ */
+HXLCutFilter.prototype.iterator = function () {
+    var outer = this;
+    var iterator = this.source.iterator();
+    return {
+        next: function() {
+            var i, values;
+            var columns = outer.columns; // will trigger lazy column processing
+            var row = iterator.next();
+            if (row) {
+                // Use the saved indices to slice values
+                values = [];
+                for (i = 0; i < outer._savedIndices.length; i++) {
+                    values.push(row.values[outer._savedIndices[i]]);
+                }
+                return new HXLRow(values, columns);
+            } else {
+                // end of data
+                return null;
+            }
+        }
+    }
 }
 
 
@@ -586,6 +679,20 @@ HXLCutFilter.prototype.getColumns = function() {
 // HXLCountFilter class
 ////////////////////////////////////////////////////////////////////////
 
+/**
+ * HXL filter to count and aggregate data.
+ *
+ * By default, this filter put out a dataset with the selected tags
+ * and a new tag #count_num giving the number of times each
+ * combination of values appears. If the aggregate tag pattern is
+ * present, the filter will also produce a column with the sum,
+ * average (mean), minimum, and maximum values for the tag, attaching
+ * the attributes +sum, +avg, +min, and +max to the core tag.
+ *
+ * @param source the HXL data source (may be another filter).
+ * @param patterns a list of tag patterns (strings or HXLTagPattern
+ * objects) whose values make up a shared key.
+ */
 function HXLCountFilter(source, patterns, aggregate) {
     HXLFilter.call(this, source);
     if (patterns) {
@@ -604,7 +711,13 @@ HXLCountFilter.prototype = Object.create(HXLFilter.prototype);
 HXLCountFilter.prototype.constructor = HXLCountFilter;
 
 /**
- * Return the columns for the aggregation.
+ * Override HXLFilter.getColumns to return only the columns for the aggregation report.
+ *
+ * Will list the tags that match the patterns provided in the
+ * constructor, as well as a #count_num tag, and aggregation tags if
+ * the aggregation parameter was included.
+ *
+ * @return a list of HXLColumn objects
  */
 HXLCountFilter.prototype.getColumns = function() {
     var cols, indices, tagspec;
@@ -635,7 +748,12 @@ HXLCountFilter.prototype.getColumns = function() {
 }
 
 /**
- * Iterate through aggregated values.
+ * Override HXLFilter.iterator to return a set of rows with aggregated values.
+ *
+ * Each row represents a unique set of values and the number of times
+ * it occurs.
+ *
+ * @return an iterator over the aggregated data.
  */
 HXLCountFilter.prototype.iterator = function() {
     var columns = this.columns; // will trigger lazy column creation
@@ -735,6 +853,11 @@ HXLCountFilter.prototype._aggregateData = function() {
     return data;
 }
 
+/**
+ * Construct a unique key from the requested values in a row of data.
+ *
+ * @return the unique key as a single string.
+ */
 HXLCountFilter.prototype._makeKey = function(row) {
     var i, index;
     var values = [];
@@ -743,3 +866,5 @@ HXLCountFilter.prototype._makeKey = function(row) {
     }
     return values.join("\0");
 }
+
+// end
