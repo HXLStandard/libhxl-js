@@ -170,34 +170,45 @@ hxl.classes.Source.prototype.each = function(callback) {
 }
 
 /**
- * Return this data source wrapped in a hxl.classes.SelectFilter
+ * Filter rows to include only those that match at least one predicate.
  *
- * @param predicates a list of patterns and predicates.  See
- * hxl.classes.SelectFilter for details.
+ * @param predicates a list of predicates.  See
+ * hxl.classes.RowFilter for details.
  * @return a new data source, including only selected data rows.
  */
 hxl.classes.Source.prototype.withRows = function(predicates) {
-    return new hxl.classes.SelectFilter(this, predicates);
+    return new hxl.classes.RowFilter(this, predicates, false);
 }
 
 /**
- * Return this data source wrapped in a hxl.classes.CutFilter
+ * Filter rows to include only those that match none of the predicates.
+ *
+ * @param predicates a list of predicates.  See
+ * hxl.classes.RowFilter for details.
+ * @return a new data source, excluding matching data rows.
+ */
+hxl.classes.Source.prototype.withoutRows = function(predicates) {
+    return new hxl.classes.RowFilter(this, predicates, true);
+}
+
+/**
+ * Return this data source wrapped in a hxl.classes.ColumnFilter
  *
  * @param whitelist (optional) if present, only tag patterns in this list may be included.
  * @return a new data source, including only selected columns.
  */
 hxl.classes.Source.prototype.withColumns = function(whitelist) {
-    return new hxl.classes.CutFilter(this, null, whitelist);
+    return new hxl.classes.ColumnFilter(this, null, whitelist);
 }
 
 /**
- * Return this data source wrapped in a hxl.classes.CutFilter
+ * Return this data source wrapped in a hxl.classes.ColumnFilter
  *
  * @param blacklist a list of tag patterns that may not be included.
  * @return a new data source, including only selected columns.
  */
 hxl.classes.Source.prototype.withoutColumns = function(blacklist) {
-    return new hxl.classes.CutFilter(this, blacklist, null);
+    return new hxl.classes.ColumnFilter(this, blacklist, null);
 }
 
 /**
@@ -501,7 +512,7 @@ hxl.classes.BaseFilter.prototype.iterator = function() {
 
 
 ////////////////////////////////////////////////////////////////////////
-// hxl.classes.SelectFilter
+// hxl.classes.RowFilter
 ////////////////////////////////////////////////////////////////////////
 
 /**
@@ -511,7 +522,7 @@ hxl.classes.BaseFilter.prototype.iterator = function() {
  *
  * // select all rows where #adm1 is the Coastal Region
  * // *or* the population is greater than 1,000
- * var filter = new hxl.classes.SelectFilter(source,
+ * var filter = new hxl.classes.RowFilter(source,
  *   { pattern: '#adm1', test: 'Coastal Region' },
  *   { pattern: '#people_num', test: function(v) { return v > 1000; } }
  * ]);
@@ -523,13 +534,14 @@ hxl.classes.BaseFilter.prototype.iterator = function() {
  * @param predicates a list of predicates, each of 
  * has a "test" property (and optionally, a "pattern" property).
  */
-hxl.classes.SelectFilter = function (source, predicates) {
+hxl.classes.RowFilter = function (source, predicates, invert) {
     hxl.classes.BaseFilter.call(this, source);
     this.predicates = this._compile_predicates(predicates);
+    this.invert = invert;
 }
 
-hxl.classes.SelectFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
-hxl.classes.SelectFilter.prototype.constructor = hxl.classes.SelectFilter;
+hxl.classes.RowFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
+hxl.classes.RowFilter.prototype.constructor = hxl.classes.RowFilter;
 
 /**
  * Override HXLFIlter.iterator to return only select rows.
@@ -537,7 +549,7 @@ hxl.classes.SelectFilter.prototype.constructor = hxl.classes.SelectFilter;
  * @return an iterator object that will skip rows that fail to pass at
  * least one of the predicates.
  */
-hxl.classes.SelectFilter.prototype.iterator = function() {
+hxl.classes.RowFilter.prototype.iterator = function() {
     var iterator = this.source.iterator();
     var outer = this;
     return {
@@ -556,7 +568,7 @@ hxl.classes.SelectFilter.prototype.iterator = function() {
 /**
  * Precompile the tag patterns in the predicates.
  */
-hxl.classes.SelectFilter.prototype._compile_predicates = function(predicates) {
+hxl.classes.RowFilter.prototype._compile_predicates = function(predicates) {
     var i;
     for (i = 0; i < predicates.length; i++) {
         if (predicates[i].pattern) {
@@ -569,7 +581,7 @@ hxl.classes.SelectFilter.prototype._compile_predicates = function(predicates) {
 /**
  * Return success if _any_ of the predicates succeeds.
  */
-hxl.classes.SelectFilter.prototype._try_predicates = function(row) {
+hxl.classes.RowFilter.prototype._try_predicates = function(row) {
     var predicate;
 
     // Try every predicate on the row
@@ -584,12 +596,12 @@ hxl.classes.SelectFilter.prototype._try_predicates = function(row) {
                 if (typeof predicate.test == 'function') {
                     // apply a function to the value
                     if (predicate.test(values[i])) {
-                        return true;
+                        return !this.invert;
                     }
                 } else {
                     // compare anything else to the value
                     if (predicate.test == values[i]) {
-                        return true;
+                        return !this.invert;
                     }
                 }
             }
@@ -599,18 +611,22 @@ hxl.classes.SelectFilter.prototype._try_predicates = function(row) {
         // test the whole row at once
         else {
             if (typeof predicate.test == 'function') {
-                return predicate.test(row);
+                if (this.invert) {
+                    return !predicate.test(row);
+                } else {
+                    return predicate.test(row);
+                }
             } else {
                 throw new Error('Row predicates must be functions: ' + predicate.test);
             }
         }
     }
-    return false;
+    return this.invert;
 }
 
 
 ////////////////////////////////////////////////////////////////////////
-// hxl.classes.CutFilter
+// hxl.classes.ColumnFilter
 ////////////////////////////////////////////////////////////////////////
 
 /**
@@ -620,7 +636,7 @@ hxl.classes.SelectFilter.prototype._try_predicates = function(row) {
  * @param blacklist a list of HXL tagspecs that must not be included.
  * @param whitelist if present, a list of the *only* HXL tagspecs allowed.
  */
-hxl.classes.CutFilter = function (source, blacklist, whitelist) {
+hxl.classes.ColumnFilter = function (source, blacklist, whitelist) {
     hxl.classes.BaseFilter.call(this, source);
 
     // pre-compile the blacklist
@@ -638,8 +654,8 @@ hxl.classes.CutFilter = function (source, blacklist, whitelist) {
     }
 }
 
-hxl.classes.CutFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
-hxl.classes.CutFilter.prototype.constructor = hxl.classes.CutFilter;
+hxl.classes.ColumnFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
+hxl.classes.ColumnFilter.prototype.constructor = hxl.classes.ColumnFilter;
 
 /**
  * Override hxl.classes.BaseFilter.getColumns to return only the allowed columns.
@@ -649,7 +665,7 @@ hxl.classes.CutFilter.prototype.constructor = hxl.classes.CutFilter;
  *
  * @return a list of hxl.classes.Column objects.
  */
-hxl.classes.CutFilter.prototype.getColumns = function() {
+hxl.classes.ColumnFilter.prototype.getColumns = function() {
     var column, columns, indices, i, j, include_tag;
     if (typeof(this._savedColumns) == 'undefined') {
 
@@ -702,7 +718,7 @@ hxl.classes.CutFilter.prototype.getColumns = function() {
  *
  * @return an iterator object to read the modified data rows.
  */
-hxl.classes.CutFilter.prototype.iterator = function () {
+hxl.classes.ColumnFilter.prototype.iterator = function () {
     var outer = this;
     var iterator = this.source.iterator();
     return {

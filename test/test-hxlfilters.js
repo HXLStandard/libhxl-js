@@ -2,9 +2,9 @@
 // Test various HXL filters
 ////////////////////////////////////////////////////////////////////////
 
-/**
- * hxl.classes.BaseFilter tests
- */
+//
+// hxl.classes.BaseFilter
+//
 
 QUnit.module("hxl.classes.BaseFilters", {
     setup: function () {
@@ -20,21 +20,22 @@ QUnit.module("hxl.classes.BaseFilters", {
     }
 });
 
-// hxl.classes.BaseFilter
-
 QUnit.test("identity filter", function(assert) {
     var filter = new hxl.classes.BaseFilter(this.dataset);
     assert.deepEqual(filter.columns, this.dataset.columns);
     assert.deepEqual(filter.rows, this.dataset.rows);
 });
 
-// hxl.classes.SelectFilter
 
-QUnit.test("select filter value string predicate", function(assert) {
+//
+// hxl.classes.RowFilter
+//
+
+QUnit.test("row filter value string predicate", function(assert) {
     var predicates = [
         { pattern: '#adm1', test: 'Coastal Province'}
     ];
-    var filter = new hxl.classes.SelectFilter(this.dataset, predicates);
+    var filter = new hxl.classes.RowFilter(this.dataset, predicates);
     assert.deepEqual(filter.columns, this.dataset.columns);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.getValues('#adm1'), ['Coastal Province']);
@@ -44,14 +45,28 @@ QUnit.test("select filter value string predicate", function(assert) {
     assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
 });
 
-QUnit.test("select filter value function predicate", function(assert) {
+QUnit.test("row filter invert", function(assert) {
+    var predicates = [
+        { pattern: '#adm1', test: 'Coastal Province'}
+    ];
+    var filter = new hxl.classes.RowFilter(this.dataset, predicates, true);
+    assert.deepEqual(filter.columns, this.dataset.columns);
+    assert.equal(filter.rows.length, 1);
+    assert.deepEqual(filter.getValues('#adm1'), ['Mountain Province']);
+
+    // test convenience methods
+    assert.deepEqual(filter.columns, this.dataset.withoutRows(predicates).columns);
+    assert.deepEqual(filter.values, this.dataset.withoutRows(predicates).values);
+});
+
+QUnit.test("row filter value function predicate", function(assert) {
     var predicates = [
         {
             pattern: '#sector+cluster', 
             test: function(value) { return value != 'Protection'; }
         }
     ];
-    var filter = new hxl.classes.SelectFilter(this.dataset, predicates);
+    var filter = new hxl.classes.RowFilter(this.dataset, predicates);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.getValues('#sector'), ['WASH', 'Health']);
 
@@ -60,13 +75,13 @@ QUnit.test("select filter value function predicate", function(assert) {
     assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
 });
 
-QUnit.test("select filter row predicate", function(assert) {
+QUnit.test("row filter row predicate", function(assert) {
     var predicates = [
         {
             test: function(row) { return (row.get('#org') == 'Org 1' && row.get('#adm1') == 'Coastal Province'); }
         }
     ];
-    var filter = new hxl.classes.SelectFilter(this.dataset, predicates);
+    var filter = new hxl.classes.RowFilter(this.dataset, predicates);
     assert.equal(filter.rows.length, 1);
 
     // test convenience methods
@@ -74,12 +89,15 @@ QUnit.test("select filter row predicate", function(assert) {
     assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
 });
 
-// hxl.classes.CutFilter
 
-QUnit.test("cut filter whitelist", function(assert) {
+//
+// hxl.classes.ColumnFilter
+//
+
+QUnit.test("column filter whitelist", function(assert) {
     var blacklist = [];
     var whitelist = ['#sector'];
-    var filter = new hxl.classes.CutFilter(this.dataset, blacklist, whitelist);
+    var filter = new hxl.classes.ColumnFilter(this.dataset, blacklist, whitelist);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
     }), ['#sector+cluster']);
@@ -94,9 +112,9 @@ QUnit.test("cut filter whitelist", function(assert) {
     assert.deepEqual(filter.values, this.dataset.withColumns(whitelist).values);
 });
 
-QUnit.test("cut filter blacklist", function(assert) {
+QUnit.test("column filter blacklist", function(assert) {
     var blacklist = ['#sector'];
-    var filter = new hxl.classes.CutFilter(this.dataset, blacklist);
+    var filter = new hxl.classes.ColumnFilter(this.dataset, blacklist);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
     }), ['#org', '#adm1']);
@@ -111,7 +129,10 @@ QUnit.test("cut filter blacklist", function(assert) {
     assert.deepEqual(filter.values, this.dataset.withoutColumns(blacklist).values);
 });
 
+
+//
 // hxl.classes.CountFilter
+//
 
 QUnit.test("count filter single column", function(assert) {
     var patterns = ['#adm1'];
