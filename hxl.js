@@ -634,28 +634,67 @@ hxl.classes.RowFilter.prototype.iterator = function() {
     }
 }
 
+hxl.classes.RowFilter.prototype.OPERATORS = {
+    '=': function (a, b) { return a = b; },
+    '!=': function (a, b) { return a != b; },
+    '<': function (a, b) { return a < b; },
+    '<=': function (a, b) { return a <= b; },
+    '>': function (a, b) { return a > b; },
+    '>=': function (a, b) { return a >= b; },
+    '~': function (a, b) { return a.match(b); },
+    '!~': function (a, b) { return !a.match(b); }
+};
+
 /**
  * Precompile the tag patterns in the predicates.
+ *
+ * @param predicates the predicates as input
+ * @return a compiled/normalised list of predicates
+ * @exception if one of the tag patterns is malformed
  */
 hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
 
-    // Helper function: compile the tag pattern, if present
-    var fixPattern = function (pattern) {
+    /**
+     * Helper function: compile the tag pattern, if present
+     */
+    var parsePattern = function (pattern) {
         if (pattern) {
             return hxl.classes.Pattern.parse(pattern);
         } else {
             return null;
         }
-    }
+    };
 
-    // Helper function: if test is a plain string, create an equality function.
-    var fixTest = function (test) {
+    /**
+     * Helper function: if test is a plain string, create an equality function.
+     */
+    var parseTest = function (test) {
         if (typeof(test) != 'function') {
             return function (value) { return value == test; };
         } else {
             return test;
         }
-    }
+    };
+
+    /**
+     * Helper function: parse a string predicate.
+     */
+    var parsePredicate = function (s) {
+        var operator, expected;
+
+        // loose expression (parsing the pattern will verify)
+        var result = s.match(/\s*([^!=~<>]+)(!?[=~]|<=?|>=?)(.*)$/);
+        if (result) {
+            operator = this.OPERATORS[result[2]];
+            expected = result[3];
+            return {
+                pattern: parsePattern(result[1]),
+                test: function (value) { return operator(value, expected); }
+            };
+        } else {
+            throw Error("Bad predicate: s");
+        }
+    };
 
     // If it's not a list, wrap it in one
     if (!Array.isArray(predicates)) {
@@ -664,10 +703,14 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
 
     // Map the list to a compiled/normalised version
     return predicates.map(function (predicate) {
-        return {
-            pattern: fixPattern(predicate.pattern),
-            test: fixTest(predicate.test)
-        };
+        if (typeof(predicate) == 'object') {
+            return {
+                pattern: parsePattern(predicate.pattern),
+                test: parseTest(predicate.test)
+            };
+        } else {
+            throw(Error("Predicate must be an object."));
+        }
     });
 }
 
@@ -695,17 +738,14 @@ hxl.classes.RowFilter.prototype._tryPredicates = function(row) {
         // If the first part is not set, then it's a row predicate
         // test the whole row at once
         else {
-            if (typeof predicate.test == 'function') {
-                if (this.invert) {
-                    return !predicate.test(row);
-                } else {
-                    return predicate.test(row);
-                }
+            if (this.invert) {
+                return !predicate.test(row);
             } else {
-                throw new Error('Row predicates must be functions: ' + predicate.test);
+                return predicate.test(row);
             }
         }
     }
+
     return this.invert;
 }
 
