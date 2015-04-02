@@ -10,11 +10,11 @@ QUnit.module("hxl.classes.BaseFilters", {
     setup: function () {
         this.test_data = [
             ['Pointless header'],
-            ['Organisation', 'Sector', 'Province'],
-            ['#org', '#sector+cluster', '#adm1'],
-            ['Org 1', 'WASH', 'Coastal Province'],
-            ['Org 2', 'Health', 'Mountain Province'],
-            ['Org 3', 'Protection', 'Coastal Province']
+            ['Organisation', 'Sector', 'Province', 'Targeted'],
+            ['#org', '#sector+cluster', '#adm1', '#population+num'],
+            ['Org 1', 'WASH', 'Coastal Province', '300'],
+            ['Org 2', 'Health', 'Mountain Province', '400'],
+            ['Org 3', 'Protection', 'Coastal Province', '500']
         ];
         this.dataset = hxl.wrap(this.test_data);
     }
@@ -43,6 +43,11 @@ QUnit.test("row filter value string predicate", function(assert) {
     // test convenience methods
     assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
     assert.deepEqual(filter.rows, this.dataset.withRows(predicates).rows);
+});
+
+QUnit.test("row filter predicate parsing", function(assert) {
+    assert.deepEqual(this.dataset.withRows('#adm1=Coastal Province').getValues('#adm1'), ['Coastal Province']);
+    assert.deepEqual(this.dataset.withRows('#adm1!=Coastal Province').getValues('#adm1'), ['Mountain Province']);
 });
 
 QUnit.test("row filter invert", function(assert) {
@@ -119,11 +124,11 @@ QUnit.test("column filter blacklist", function(assert) {
     var filter = new hxl.classes.ColumnFilter(this.dataset, blacklist);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
-    }), ['#org', '#adm1']);
+    }), ['#org', '#adm1', '#population+num']);
     assert.deepEqual(filter.rows.map(function (row) {
         return row.values;
     }), this.test_data.slice(3).map(function (data) {
-        return [data[0], data[2]];
+        return [data[0], data[2], data[3]];
     }));
 
     // test that the convenience methods work
