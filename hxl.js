@@ -638,10 +638,35 @@ hxl.classes.RowFilter.prototype.iterator = function() {
  * Precompile the tag patterns in the predicates.
  */
 hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
+
+    // Helper function: compile the tag pattern, if present
+    var fixPattern = function (pattern) {
+        if (pattern) {
+            return hxl.classes.Pattern.parse(pattern);
+        } else {
+            return null;
+        }
+    }
+
+    // Helper function: if test is a plain string, create an equality function.
+    var fixTest = function (test) {
+        if (typeof(test) != 'function') {
+            return function (value) { return value == test; };
+        } else {
+            return test;
+        }
+    }
+
+    // If it's not a list, wrap it in one
+    if (!Array.isArray(predicates)) {
+        predicates = [ predicates ];
+    }
+
+    // Map the list to a compiled/normalised version
     return predicates.map(function (predicate) {
         return {
-            pattern: (predicate.pattern ? hxl.classes.Pattern.parse(predicate.pattern) : null),
-            test: predicate.test
+            pattern: fixPattern(predicate.pattern),
+            test: fixTest(predicate.test)
         };
     });
 }
@@ -661,16 +686,8 @@ hxl.classes.RowFilter.prototype._tryPredicates = function(row) {
         if (predicate.pattern) {
             var values = row.getAll(predicate.pattern);
             for (var j = 0; j < values.length; j++) {
-                if (typeof predicate.test == 'function') {
-                    // apply a function to the value
-                    if (predicate.test(values[i])) {
-                        return !this.invert;
-                    }
-                } else {
-                    // compare anything else to the value
-                    if (predicate.test == values[i]) {
-                        return !this.invert;
-                    }
+                if (predicate.test(values[i])) {
+                    return !this.invert;
                 }
             }
         } 
