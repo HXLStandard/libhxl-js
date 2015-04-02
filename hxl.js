@@ -29,10 +29,9 @@ var hxl = {
  * @param message The message to log.
  */
 hxl.log = function (message) {
-    var i;
-    for (i = 0; i < hxl.loggers.length; i++) {
-        hxl.loggers[i](message);
-    }
+    hxl.loggers.forEach(function (logger) {
+        loggers(message);
+    });
 }
 
 /**
