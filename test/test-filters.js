@@ -42,7 +42,7 @@ QUnit.test("row filter value string predicate", function(assert) {
 
     // test convenience methods
     assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
-    assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
+    assert.deepEqual(filter.rows, this.dataset.withRows(predicates).rows);
 });
 
 QUnit.test("row filter invert", function(assert) {
@@ -56,7 +56,7 @@ QUnit.test("row filter invert", function(assert) {
 
     // test convenience methods
     assert.deepEqual(filter.columns, this.dataset.withoutRows(predicates).columns);
-    assert.deepEqual(filter.values, this.dataset.withoutRows(predicates).values);
+    assert.deepEqual(filter.rows, this.dataset.withoutRows(predicates).rows);
 });
 
 QUnit.test("row filter value function predicate", function(assert) {
@@ -72,7 +72,9 @@ QUnit.test("row filter value function predicate", function(assert) {
 
     // test convenience methods
     assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
-    assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
+    assert.deepEqual(filter.rows, this.dataset.withRows(predicates).rows);
+    assert.deepEqual(filter.columns, this.dataset.withRows('#sector+cluster!=Protection').columns);
+    assert.deepEqual(filter.rows, this.dataset.withRows('#sector+cluster!=Protection').rows);
 });
 
 QUnit.test("row filter row predicate", function(assert) {
@@ -86,7 +88,7 @@ QUnit.test("row filter row predicate", function(assert) {
 
     // test convenience methods
     assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
-    assert.deepEqual(filter.values, this.dataset.withRows(predicates).values);
+    assert.deepEqual(filter.rows, this.dataset.withRows(predicates).rows);
 });
 
 
@@ -126,7 +128,7 @@ QUnit.test("column filter blacklist", function(assert) {
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, this.dataset.withoutColumns(blacklist).columns);
-    assert.deepEqual(filter.values, this.dataset.withoutColumns(blacklist).values);
+    assert.deepEqual(filter.rows, this.dataset.withoutColumns(blacklist).rows);
 });
 
 
@@ -144,7 +146,7 @@ QUnit.test("count filter single column", function(assert) {
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
-    assert.deepEqual(filter.values, this.dataset.count(patterns).values);
+    assert.deepEqual(filter.rows, this.dataset.count(patterns).rows);
 });
 
 QUnit.test("count filter multiple columns", function(assert) {
@@ -157,7 +159,7 @@ QUnit.test("count filter multiple columns", function(assert) {
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
-    assert.deepEqual(filter.values, this.dataset.count(patterns).values);
+    assert.deepEqual(filter.rows, this.dataset.count(patterns).rows);
 });
 
 QUnit.test("test numeric aggregation", function(assert) {
@@ -176,7 +178,7 @@ QUnit.test("test numeric aggregation", function(assert) {
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, source.count(patterns, aggregate).columns);
-    assert.deepEqual(filter.values, source.count(patterns, aggregate).values);
+    assert.deepEqual(filter.rows, source.count(patterns, aggregate).rows);
 });
 
 // end

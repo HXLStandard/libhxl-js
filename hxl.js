@@ -634,7 +634,10 @@ hxl.classes.RowFilter.prototype.iterator = function() {
     }
 }
 
-hxl.classes.RowFilter.prototype.OPERATORS = {
+/**
+ * Operator functions.
+ */
+hxl.classes.RowFilter.OPERATORS = {
     '=': function (a, b) { return a = b; },
     '!=': function (a, b) { return a != b; },
     '<': function (a, b) { return a < b; },
@@ -685,7 +688,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
         // loose expression (parsing the pattern will verify)
         var result = s.match(/\s*([^!=~<>]+)(!?[=~]|<=?|>=?)(.*)$/);
         if (result) {
-            operator = this.OPERATORS[result[2]];
+            operator = hxl.classes.RowFilter.OPERATORS[result[2]];
             expected = result[3];
             return {
                 pattern: parsePattern(result[1]),
@@ -709,7 +712,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
                 test: parseTest(predicate.test)
             };
         } else {
-            throw(Error("Predicate must be an object."));
+            return parsePredicate(predicate);
         }
     });
 }
