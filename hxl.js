@@ -401,7 +401,7 @@ hxl.classes.Column.prototype.getDisplayTag = function() {
 /**
  * Parse a tag spec into its parts.
  */
-hxl.classes.Column.parse = function(spec, header, use_exception) {
+hxl.classes.Column.parse = function(spec, header, useException) {
     var result = spec.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?\s*$/);
     var attributes = [];
     if (result) {
@@ -410,7 +410,7 @@ hxl.classes.Column.parse = function(spec, header, use_exception) {
             attributes = result[2].split(/\s*\+/).filter(function(attribute) { return attribute; });
         }
         return new hxl.classes.Column(result[1], attributes, header);
-    } else if (use_exception) {
+    } else if (useException) {
         throw "Bad tag specification: " + spec;
     } else {
         hxl.log("Bad tag specification: " + spec);
@@ -605,7 +605,7 @@ hxl.classes.BaseFilter.prototype.iterator = function() {
  */
 hxl.classes.RowFilter = function (source, predicates, invert) {
     hxl.classes.BaseFilter.call(this, source);
-    this.predicates = this._compile_predicates(predicates);
+    this.predicates = this._compilePredicates(predicates);
     this.invert = invert;
 }
 
@@ -625,7 +625,7 @@ hxl.classes.RowFilter.prototype.iterator = function() {
         next: function() {
             var row;
             while (row = iterator.next()) {
-                if (outer._try_predicates(row)) {
+                if (outer._tryPredicates(row)) {
                     return row;
                 }
             }
@@ -637,20 +637,19 @@ hxl.classes.RowFilter.prototype.iterator = function() {
 /**
  * Precompile the tag patterns in the predicates.
  */
-hxl.classes.RowFilter.prototype._compile_predicates = function(predicates) {
-    var i;
-    for (i = 0; i < predicates.length; i++) {
-        if (predicates[i].pattern) {
-            predicates[i].pattern = hxl.classes.Pattern.parse(predicates[i].pattern);
-        }
-    }
-    return predicates;
+hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
+    return predicates.map(function (predicate) {
+        return {
+            pattern: (predicate.pattern ? hxl.classes.Pattern.parse(predicate.pattern) : null),
+            test: predicate.test
+        };
+    });
 }
 
 /**
  * Return success if _any_ of the predicates succeeds.
  */
-hxl.classes.RowFilter.prototype._try_predicates = function(row) {
+hxl.classes.RowFilter.prototype._tryPredicates = function(row) {
     var predicate;
 
     // Try every predicate on the row
