@@ -459,13 +459,20 @@ hxl.classes.Pattern.prototype.match = function(column) {
     return true;
 }
 
-hxl.classes.Pattern.parse = function(pattern, use_exception) {
+/**
+ * Parse a string into a tag pattern.
+ *
+ * @param pattern a tag-pattern string, like "#org+funder-impl"
+ * @param useException (optional) throw an exception on failure.
+ * @return a hxl.classes.Pattern, or null if parsing fails (and useException is false).
+ */
+hxl.classes.Pattern.parse = function(pattern, useException) {
     var result, include_attributes, exclude_attributes, attribute_specs, i;
     if (pattern instanceof hxl.classes.Pattern) {
         // If this is already parsed, then just return it.
         return pattern;
     } else if (!pattern) {
-        if (use_exception) {
+        if (useException) {
             throw new Error("No tag pattern provided");
         } else {
             return null;
@@ -484,7 +491,7 @@ hxl.classes.Pattern.parse = function(pattern, use_exception) {
                 }
             }
             return new hxl.classes.Pattern(result[1], include_attributes, exclude_attributes);
-        } else if (use_exception) {
+        } else if (useException) {
             throw "Bad tag pattern: " + pattern;
         } else {
             hxl.log("Bad tag pattern: " + pattern);
