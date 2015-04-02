@@ -353,17 +353,23 @@ hxl.classes.Dataset.prototype._getTagRowIndex = function() {
     }
 }
 
-hxl.classes.Dataset.prototype._isTagRow = function(row) {
-    var seenTag, seenNonTag, i;
-    for (i = 0; i < row.length; i++) {
-        if (row[i]) {
-            if (row[i].match(/^\s*#.*$/) && hxl.classes.Pattern.parse(row[i])) {
+/**
+ * Test a candidate HXL tag row.
+ *
+ * @param rawRow a raw array of values (e.g. a CSV row).
+ * @return true if this qualifies as a tag row.
+ */
+hxl.classes.Dataset.prototype._isTagRow = function(rawRow) {
+    var seenTag = false, seenNonTag = false;
+    rawRow.forEach(function (rawValue) {
+        if (rawValue) {
+            if (rawValue.match(/^\s*#.*$/) && hxl.classes.Pattern.parse(rawValue)) {
                 seenTag = true;
             } else {
                 seenNonTag = true;
             }
         }
-    }
+    });
     return (seenTag && !seenNonTag);
 }
 
