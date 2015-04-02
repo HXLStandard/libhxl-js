@@ -46,8 +46,38 @@ QUnit.test("row filter value string predicate", function(assert) {
 });
 
 QUnit.test("row filter predicate parsing", function(assert) {
-    assert.deepEqual(this.dataset.withRows('#adm1=Coastal Province').getValues('#adm1'), ['Coastal Province']);
-    assert.deepEqual(this.dataset.withRows('#adm1!=Coastal Province').getValues('#adm1'), ['Mountain Province']);
+    assert.deepEqual(
+        this.dataset.withRows('#adm1=Coastal Province').getValues('#adm1'),
+        ['Coastal Province']
+    );
+    assert.deepEqual(
+        this.dataset.withRows('#adm1!=Coastal Province').getValues('#adm1'),
+        ['Mountain Province']
+    );
+    assert.deepEqual(
+        this.dataset.withRows('#population<400').getValues('#org'),
+        ['Org 1']
+    );
+    assert.deepEqual(
+        this.dataset.withRows('#population<=400').getValues('#org'),
+        ['Org 1', 'Org 2']
+    );
+    assert.deepEqual(
+        this.dataset.withRows('#population>400').getValues('#org'),
+        ['Org 3']
+    );
+    assert.deepEqual(
+        this.dataset.withRows('#population>=400').getValues('#org'),
+        ['Org 2', 'Org 3']
+    );
+    assert.deepEqual(
+        this.dataset.withRows('#adm1~^Coast').getValues('#org'),
+        ['Org 1', 'Org 3']
+    );
+    assert.deepEqual(
+        this.dataset.withRows('#adm1!~^Coast').getValues('#org'),
+        ['Org 2']
+    );
 });
 
 QUnit.test("row filter invert", function(assert) {
