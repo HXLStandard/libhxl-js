@@ -239,21 +239,21 @@ hxl.classes.Source.prototype.withoutRows = function(predicates) {
 /**
  * Return this data source wrapped in a hxl.classes.ColumnFilter
  *
- * @param whitelist (optional) if present, only tag patterns in this list may be included.
- * @return a new data source, including only selected columns.
+ * @param patterns a list of tag patterns for included columns (whitelist).
+ * @return a new data source, including only matching columns.
  */
-hxl.classes.Source.prototype.withColumns = function(whitelist) {
-    return new hxl.classes.ColumnFilter(this, null, whitelist);
+hxl.classes.Source.prototype.withColumns = function(patterns) {
+    return new hxl.classes.ColumnFilter(this, patterns);
 }
 
 /**
  * Return this data source wrapped in a hxl.classes.ColumnFilter
  *
- * @param blacklist a list of tag patterns that may not be included.
- * @return a new data source, including only selected columns.
+ * @param patterns a list of tag patterns for excluded columns (blacklist).
+ * @return a new data source, excluding matching columns.
  */
-hxl.classes.Source.prototype.withoutColumns = function(blacklist) {
-    return new hxl.classes.ColumnFilter(this, blacklist, null);
+hxl.classes.Source.prototype.withoutColumns = function(patterns) {
+    return new hxl.classes.ColumnFilter(this, patterns, true);
 }
 
 /**
@@ -761,25 +761,13 @@ hxl.classes.RowFilter.prototype._tryPredicates = function(row) {
  * HXL filter class to remove columns from a dataset.
  *
  * @param source the HXL data source (may be another filter).
- * @param blacklist a list of HXL tagspecs that must not be included.
- * @param whitelist if present, a list of the *only* HXL tagspecs allowed.
+ * @param patterns a list of HXL tag patterns to include (or exclude).
+ * @param invert if true, exclude matching columns rather than including them (blacklist).
  */
-hxl.classes.ColumnFilter = function (source, blacklist, whitelist) {
+hxl.classes.ColumnFilter = function (source, patterns, invert) {
     hxl.classes.BaseFilter.call(this, source);
-
-    // pre-compile the blacklist
-    if (blacklist) {
-        this.blacklist = blacklist.map(function (pattern) { return hxl.classes.Pattern.parse(pattern, true); });
-    } else {
-        this.blacklist = [];
-    }
-
-    // pre-compile the whitelist
-    if (whitelist) {
-        this.whitelist = whitelist.map(function (pattern) { return hxl.classes.Pattern.parse(pattern, true); });
-    } else {
-        this.whitelist = [];
-    }
+    this.patterns = this._compilePatterns(patterns);
+    this.invert = invert;
 }
 
 hxl.classes.ColumnFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
@@ -794,47 +782,36 @@ hxl.classes.ColumnFilter.prototype.constructor = hxl.classes.ColumnFilter;
  * @return a list of hxl.classes.Column objects.
  */
 hxl.classes.ColumnFilter.prototype.getColumns = function() {
-    var column, columns, indices, i, j, include_tag;
     if (typeof(this._savedColumns) == 'undefined') {
 
+        /**
+         * Check if any of the patterns matches the column.
+         */
+        var columnMatches = function(column, patterns) {
+            for (var i = 0; i < patterns.length; i++) {
+                if (patterns[i].match(column)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
         // we haven't extracted the columns before, so do it now
-        columns = [];
-        indices = [];
+        var newColumns = [];
+        var newIndices = [];
 
-        // check all of the columns against the blacklist & whiteslist
-        for (i = 0; i < this.source.columns.length; i++) {
-
-            column = this.source.columns[i];
-
-            // start by assuming we can include the columns
-            include_tag = true;
-
-            // check the blacklist
-            for (j = 0; j < this.blacklist.length; j++) {
-                if (this.blacklist[j].match(column)) {
-                    include_tag = false;
-                }
-            }
-
-            // check the whitelist (if present)
-            if (include_tag && this.whitelist) {
-                for (j = 0; j < this.whitelist.length; j++) {
-                    if (!this.whitelist[j].match(column)) {
-                        include_tag = false;
-                    }
-                }
-            }
-
-            // if we survived to here, save the column and index
-            if (include_tag) {
-                columns.push(column);
-                indices.push(i);
+        // check every column against the patterns
+        for (var i = 0; i < this.source.columns.length; i++) {
+            var is_match = columnMatches(this.source.columns[i], this.patterns);
+            if ((is_match && !this.invert) || (!is_match && this.invert)) {
+                newColumns.push(this.source.columns[i]);
+                newIndices.push(i);
             }
         }
 
         // save the columns and indices for future use
-        this._savedColumns = columns;
-        this._savedIndices = indices;
+        this._savedColumns = newColumns;
+        this._savedIndices = newIndices;
     }
 
     // return the saved columns
@@ -867,6 +844,18 @@ hxl.classes.ColumnFilter.prototype.iterator = function () {
             }
         }
     }
+}
+
+/**
+ * Normalise and optimize the list of column patterns.
+ */
+hxl.classes.ColumnFilter.prototype._compilePatterns = function (patterns) {
+    if (!Array.isArray(patterns)) {
+        patterns = [ patterns ];
+    }
+    return patterns.map(function (pattern) {
+        return hxl.classes.Pattern.parse(pattern);
+    });
 }
 
 

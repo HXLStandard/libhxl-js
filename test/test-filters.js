@@ -132,9 +132,8 @@ QUnit.test("row filter row predicate", function(assert) {
 //
 
 QUnit.test("column filter whitelist", function(assert) {
-    var blacklist = [];
-    var whitelist = ['#sector'];
-    var filter = new hxl.classes.ColumnFilter(this.dataset, blacklist, whitelist);
+    var patterns = ['#sector'];
+    var filter = new hxl.classes.ColumnFilter(this.dataset, patterns);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
     }), ['#sector+cluster']);
@@ -145,13 +144,14 @@ QUnit.test("column filter whitelist", function(assert) {
     }));
 
     // test that the convenience methods work
-    assert.deepEqual(filter.columns, this.dataset.withColumns(whitelist).columns);
-    assert.deepEqual(filter.values, this.dataset.withColumns(whitelist).values);
+    assert.deepEqual(filter.columns, this.dataset.withColumns(patterns).columns);
+    assert.deepEqual(filter.values, this.dataset.withColumns(patterns).values);
+    assert.deepEqual(filter.values, this.dataset.withColumns('#sector').values);
 });
 
 QUnit.test("column filter blacklist", function(assert) {
-    var blacklist = ['#sector'];
-    var filter = new hxl.classes.ColumnFilter(this.dataset, blacklist);
+    var patterns = ['#sector'];
+    var filter = new hxl.classes.ColumnFilter(this.dataset, patterns, true);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
     }), ['#org', '#adm1', '#population+num']);
@@ -162,8 +162,9 @@ QUnit.test("column filter blacklist", function(assert) {
     }));
 
     // test that the convenience methods work
-    assert.deepEqual(filter.columns, this.dataset.withoutColumns(blacklist).columns);
-    assert.deepEqual(filter.rows, this.dataset.withoutColumns(blacklist).rows);
+    assert.deepEqual(filter.columns, this.dataset.withoutColumns(patterns).columns);
+    assert.deepEqual(filter.rows, this.dataset.withoutColumns(patterns).rows);
+    assert.deepEqual(filter.rows, this.dataset.withoutColumns('#sector').rows);
 });
 
 
