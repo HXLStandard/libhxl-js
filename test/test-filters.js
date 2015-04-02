@@ -47,7 +47,7 @@ QUnit.test("row filter value string predicate", function(assert) {
 
 QUnit.test("row filter predicate parsing", function(assert) {
     assert.deepEqual(
-        this.dataset.withRows('#adm1=Coastal Province').getValues('#adm1'),
+        this.dataset.withRows(' #adm1 -foo =Coastal Province').getValues('#adm1'),
         ['Coastal Province']
     );
     assert.deepEqual(
@@ -94,11 +94,16 @@ QUnit.test("row filter invert", function(assert) {
     assert.deepEqual(filter.rows, this.dataset.withoutRows(predicates).rows);
 });
 
+QUnit.test("row filter normalised strings", function(assert) {
+    assert.deepEqual(this.dataset.withRows('#adm1=  coastal   province ').getValues('#org'), ['Org 1', 'Org 3']);
+});
+
 QUnit.test("row filter value function predicate", function(assert) {
+    var test_function = function(value) { return value != 'Protection'; };
     var predicates = [
         {
             pattern: '#sector+cluster', 
-            test: function(value) { return value != 'Protection'; }
+            test: test_function
         }
     ];
     var filter = new hxl.classes.RowFilter(this.dataset, predicates);
@@ -108,14 +113,13 @@ QUnit.test("row filter value function predicate", function(assert) {
     // test convenience methods
     assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
     assert.deepEqual(filter.rows, this.dataset.withRows(predicates).rows);
-    assert.deepEqual(filter.columns, this.dataset.withRows('#sector+cluster!=Protection').columns);
-    assert.deepEqual(filter.rows, this.dataset.withRows('#sector+cluster!=Protection').rows);
 });
 
 QUnit.test("row filter row predicate", function(assert) {
+    var test_function = function(row) { return (row.get('#org') == 'Org 1' && row.get('#adm1') == 'Coastal Province'); };
     var predicates = [
         {
-            test: function(row) { return (row.get('#org') == 'Org 1' && row.get('#adm1') == 'Coastal Province'); }
+            test: test_function
         }
     ];
     var filter = new hxl.classes.RowFilter(this.dataset, predicates);
@@ -124,6 +128,8 @@ QUnit.test("row filter row predicate", function(assert) {
     // test convenience methods
     assert.deepEqual(filter.columns, this.dataset.withRows(predicates).columns);
     assert.deepEqual(filter.rows, this.dataset.withRows(predicates).rows);
+    assert.deepEqual(filter.columns, this.dataset.withRows(test_function).columns);
+    assert.deepEqual(filter.rows, this.dataset.withRows(test_function).rows);
 });
 
 

@@ -14,7 +14,7 @@ This library supports high-level filtering and aggregation operations on HXL dat
 ## Load a dataset from the web:
 
     hxl.load('http://example.org/dataset.csv', function (dataset) {
-        do_something_with(dataset);                                           
+        console.log('Dataset has ' + dataset.columns.length + ' columns.');
     });
 
 ## Create a dataset from array data
@@ -26,7 +26,6 @@ This library supports high-level filtering and aggregation operations on HXL dat
         [ "Org B", "Health", "Mountain Province" ],
         [ "Org C", "Education", "Coastal Province" ],
         [ "Org A", "WASH", "Plains Province" ],
-
     ];
 
     var dataset = hxl.wrap(rawData);
@@ -50,7 +49,6 @@ This library supports high-level filtering and aggregation operations on HXL dat
 
     var unique_values = dataset.getValues('#org');
 
-
 # Filters
 
 Filters create a new virtual version of the dataset, on the fly. The
@@ -64,53 +62,29 @@ original dataset is unmodified.
 
 ### Remove specific columns
 
-    dataset.withoutColumns(['#contact+email']).each(...);
+    dataset.withoutColumns('#contact+email').each(...);
 
 ## Row filtering
 
 ### Include only specific rows
 
-    dataset.withRows([
-      { 
-        pattern: '#sector',
-        test: 'WASH'
-      }
-    ]).each(...);
+    dataset.withRows('#sector=WASH').each(...);
 
 ### Remove specific rows
 
-    dataset.withoutRows([
-      {
-        pattern: '#status', 
-        test: 'Unreleased'
-      }
-    ]).each(...);
-
-### Use a custom predicate
-
-    dataset.withRows([
-      { 
-        pattern '#people_num+affected',
-        test: function (value) { 
-          return value > 100; 
-        }
-      }
-    ]).each(...);
+    dataset.withoutRows('#status=Unreleased').each(...);
 
 ### Test an entire row
 
-    dataset.withRows([
-      {
-        test: function (row) {
-          // test values in the row
-        }
-    ]).each(...);
+    dataset.withRows(function (row) { 
+        return row.get('#population+targeted+num') < row.get('#population+affected+num');
+    }).each(...);
 
 ## Aggregation
 
 ### Count values of #adm1
 
-    dataset.count(['#adm1']).each(...);
+    dataset.count('#adm1').each(...);
 
 ### Count combinations of #adm1 and #sector
 
@@ -120,12 +94,7 @@ original dataset is unmodified.
 
 Count #adm only in the WASH sector:
 
-    dataset.withRows([
-      { 
-        pattern:'#sector', 
-        test:'WASH' 
-      }
-    ]).count(['#adm1']).each(...);
+    dataset.withRows('#sector=WASH').count('#adm1').each(...);
 
 # Tests
 

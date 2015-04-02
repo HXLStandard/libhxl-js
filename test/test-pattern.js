@@ -29,6 +29,13 @@ QUnit.test("positive match", function(assert) {
     assert.ok(this.pattern.match(this.column));
 });
 
+QUnit.test("embedded whitespace", function(assert) {
+    assert.ok(hxl.classes.Pattern.parse('#adm1 +foo'));
+    assert.ok(hxl.classes.Pattern.parse(' #adm1+foo'));
+    assert.ok(hxl.classes.Pattern.parse(' #adm1+foo '));
+    assert.ok(hxl.classes.Pattern.parse(' #adm1+foo '));
+});
+
 QUnit.test("bad pattern", function(assert) {
     // no exception
     assert.ok(hxl.classes.Pattern.parse("#abc+x=y") === null);
