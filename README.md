@@ -13,9 +13,15 @@ This library supports high-level filtering and aggregation operations on HXL dat
 
 ## Load a dataset from the web:
 
+Requires that the Papa Parse CSV library be loaded before HXL (there
+is a copy bundled in lib/, with permission):
+
     hxl.load('http://example.org/dataset.csv', function (dataset) {
         console.log('Dataset has ' + dataset.columns.length + ' columns.');
     });
+
+The HXL library will soon also support autodetecting the availability
+of D3 and JQuery-based CSV parsing.
 
 ## Create a dataset from array data
 
