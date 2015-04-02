@@ -638,7 +638,7 @@ hxl.classes.RowFilter.prototype.iterator = function() {
  * Operator functions.
  */
 hxl.classes.RowFilter.OPERATORS = {
-    '=': function (a, b) { return a = b; },
+    '=': function (a, b) { return a == b; },
     '!=': function (a, b) { return a != b; },
     '<': function (a, b) { return a < b; },
     '<=': function (a, b) { return a <= b; },
