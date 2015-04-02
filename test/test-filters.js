@@ -183,6 +183,7 @@ QUnit.test("count filter single column", function(assert) {
     // test that the convenience methods work
     assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
     assert.deepEqual(filter.rows, this.dataset.count(patterns).rows);
+    assert.deepEqual(filter.rows, this.dataset.count('#adm1').rows);
 });
 
 QUnit.test("count filter multiple columns", function(assert) {

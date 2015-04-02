@@ -880,6 +880,9 @@ hxl.classes.ColumnFilter.prototype._compilePatterns = function (patterns) {
 hxl.classes.CountFilter = function (source, patterns, aggregate) {
     hxl.classes.BaseFilter.call(this, source);
     if (patterns) {
+        if (!Array.isArray(patterns)) {
+            patterns = [ patterns ];
+        }
         this.patterns = patterns.map(function (pattern) { return hxl.classes.Pattern.parse(pattern, true); });
     } else {
         throw new Error("No tag patterns specified");
