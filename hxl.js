@@ -525,7 +525,10 @@ hxl.classes.Row = function (values, columns) {
 }
 
 /**
- * Look up a value by tag.
+ * Look up the first value that matches a tag pattern.
+ *
+ * @param pattern The tag pattern to use.
+ * @return a string value, or null if none found.
  */
 hxl.classes.Row.prototype.get = function(pattern) {
     var i;
@@ -539,17 +542,19 @@ hxl.classes.Row.prototype.get = function(pattern) {
 }
 
 /**
- * Look up all values with a specific tag.
+ * Look up all values that match a tag pattern.
+ *
+ * @param pattern The tag pattern to use.
+ * @return a possibly-empty array of string values (or nulls).
  */
 hxl.classes.Row.prototype.getAll = function(pattern) {
-    var i;
+    var row = this, values = [];
     var pattern = hxl.classes.Pattern.parse(pattern, true);
-    var values = [];
-    for (i = 0; i < this.columns.length && i < this.values.length; i++) {
-        if (pattern.match(this.columns[i])) {
-            values.push(this.values[i]);
+    this.columns.forEach(function (column, index) {
+        if (pattern.match(column)) {
+            values.push(row.values[index]);
         }
-    }
+    });
     return values;
 }
 
