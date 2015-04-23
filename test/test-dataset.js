@@ -6,11 +6,11 @@ QUnit.module("hxl.classes.Dataset", {
     setup: function () {
         this.test_data = [
             ['Pointless header'],
-            ['Organisation', 'Sector', 'Province'],
-            ['#org', '#sector+cluster', '#adm1'],
-            ['Org 1', 'WASH', 'Coastal Province'],
-            ['Org 2', 'Health', 'Mountain Province'],
-            ['Org 3', 'Protection', 'Coastal Province']
+            ['Organisation', 'Sector', 'Province', 'Number reached'],
+            ['#org', '#sector+cluster', '#adm1', '#reached'],
+            ['Org 1', 'WASH', 'Coastal Province', '200'],
+            ['Org 2', 'Health', 'Mountain Province', '300'],
+            ['Org 3', 'Protection', 'Coastal Province', '400']
         ];
         this.dataset = new hxl.classes.Dataset(this.test_data);
     }
@@ -57,6 +57,11 @@ QUnit.test("each", function(assert) {
 
 QUnit.test("values", function(assert) {
     assert.deepEqual(this.dataset.getValues('#adm1'), ['Coastal Province', 'Mountain Province']);
+});
+
+QUnit.test("numbery", function(assert) {
+    assert.ok(!this.dataset.isNumbery('#org'));
+    assert.ok(this.dataset.isNumbery('#reached'));
 });
 
 // end

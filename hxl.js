@@ -226,6 +226,26 @@ hxl.classes.Source.prototype.each = function(callback) {
 hxl.classes.Source.prototype.forEach = hxl.classes.Source.prototype.each;
 
 /**
+ * Test if a tag pattern points mainly to numbers.
+ *
+ * @param pattern The tag pattern to test.
+ * @return true if at least 90% of the non-null values are numeric.
+ */
+hxl.classes.Source.prototype.isNumbery = function(pattern) {
+    var total_seen = 0;
+    var numeric_seen = 0;
+    this.getValues(pattern).forEach(function (value) {
+        if (value) {
+            total_seen++;
+            if (!isNaN(value)) {
+                numeric_seen++;
+            }
+        }
+    });
+    return (total_seen > 0 && (numeric_seen/total_seen >= 0.9));;
+}
+
+/**
  * Filter rows to include only those that match at least one predicate.
  *
  * @param predicates a list of predicates.  See
