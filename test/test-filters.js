@@ -10,11 +10,11 @@ QUnit.module("hxl.classes.BaseFilters", {
     setup: function () {
         this.test_data = [
             ['Pointless header'],
-            ['Organisation', 'Sector', 'Province', 'Targeted'],
-            ['#org', '#sector+cluster', '#adm1', '#population+num'],
-            ['Org 1', 'WASH', 'Coastal Province', '300'],
-            ['Org 2', 'Health', 'Mountain Province', '400'],
-            ['Org 3', 'Protection', 'Coastal Province', '500']
+            ['Organisation', 'Second organisation', 'Sector', 'Province', 'Targeted'],
+            ['#org', '#org', '#sector+cluster', '#adm1', '#population+num'],
+            ['Org 1', 'Org 1a', 'WASH', 'Coastal Province', '300'],
+            ['Org 2', '', 'Health', 'Mountain Province', '400'],
+            ['Org 3', '', 'Protection', 'Coastal Province', '500']
         ];
         this.dataset = hxl.wrap(this.test_data);
     }
@@ -146,7 +146,7 @@ QUnit.test("column filter whitelist", function(assert) {
     assert.deepEqual(filter.rows.map(function (row) {
         return row.values;
     }), this.test_data.slice(3).map(function (data) {
-        return [data[1]];
+        return [data[2]];
     }));
 
     // test that the convenience methods work
@@ -160,11 +160,11 @@ QUnit.test("column filter blacklist", function(assert) {
     var filter = new hxl.classes.ColumnFilter(this.dataset, patterns, true);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
-    }), ['#org', '#adm1', '#population+num']);
+    }), ['#org', '#org', '#adm1', '#population+num']);
     assert.deepEqual(filter.rows.map(function (row) {
         return row.values;
     }), this.test_data.slice(3).map(function (data) {
-        return [data[0], data[2], data[3]];
+        return [data[0], data[1], data[3], data[4]];
     }));
 
     // test that the convenience methods work
@@ -222,6 +222,16 @@ QUnit.test("test numeric aggregation", function(assert) {
     // test that the convenience methods work
     assert.deepEqual(filter.columns, source.count(patterns, aggregate).columns);
     assert.deepEqual(filter.rows, source.count(patterns, aggregate).rows);
+});
+
+
+//
+// HXL.classes.RenameFilter
+//
+
+QUnit.test("replace all matches", function(assert) {
+    var filter = new hxl.classes.RenameFilter(this.dataset, '#org', '#org+foo');
+    assert.deepEqual(filter.displayTags, ['#org+foo', '#org+foo', '#sector+cluster', '#adm1', '#population+num']);
 });
 
 // end

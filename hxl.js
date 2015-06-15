@@ -314,6 +314,20 @@ hxl.classes.Source.prototype.count = function(patterns, aggregate) {
     return new hxl.classes.CountFilter(this, patterns, aggregate);
 }
 
+/**
+ * Return this data source wrapped in a hxl.classes.RenameFilter
+ *
+ * @param pattern the tag pattern to match for replacement.
+ * @param newTag the new HXL tag spec (e.g. "#adm1+code").
+ * @param newHeader (optional) the new header. If undefined, don't change.
+ * @param index the zero-based index to replace among matching tags. If undefined,
+ * replace *all* matches.
+ * @return a new data source, with matching column(s) replaced.
+ */
+hxl.classes.Source.prototype.rename = function(pattern, newTag, newHeader, index) {
+    return new hxl.classesRenameFilter(this, pattern, newTag, newHeader, index);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 // hxl.classes.Dataset
@@ -1102,6 +1116,62 @@ hxl.classes.CountFilter.prototype._makeKey = function(row) {
         values.push(row.values[this._savedIndices[i]]);
     }
     return values.join("\0");
+}
+
+
+////////////////////////////////////////////////////////////////////////
+// hxl.classes.RenameFilter
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * HXL filter to rename a column (new header and tag).
+ *
+ * @param source the hxl.classes.Source
+ * @param pattern the tag pattern to replace
+ * @param newTag the new HXL tag (with attributes)
+ * @param newHeader (optional) the new text header. If undefined or
+ * null or false, don't change the existing header.
+ * @param index the zero-based index of the match to replace. If
+ * undefined or null or false, replace *all* matches.
+ */
+hxl.classes.RenameFilter = function (source, pattern, newTagspec, newHeader, index) {
+    hxl.classes.BaseFilter.call(this, source);
+    this.pattern = hxl.classes.Pattern.parse(pattern);
+    this.newTagspec = newTagspec;
+    this.newHeader = newHeader;
+    this.index = index;
+    this._savedColumns = undefined;
+}
+
+hxl.classes.RenameFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
+hxl.classes.RenameFilter.prototype.constructor = hxl.classes.RenameFilter;
+
+/**
+ * Get the renamed columns.
+ */
+hxl.classes.RenameFilter.prototype.getColumns = function() {
+    var cols, header;
+    var pattern = this.pattern;
+    var tagspec = this.newTagspec;
+    if (this._savedColumns === undefined) {
+        cols = [];
+        this.source.getColumns().forEach(function (col) {
+            if (pattern.match(col)) {
+                if (this.header === undefined) {
+                    header = col.header;
+                } else {
+                    header = this.header;
+                }
+                col = hxl.classes.Column.parse(tagspec, header);
+                console.log(col);
+                cols.push(col);
+            } else {
+                cols.push(col);
+            }
+        });
+        this._savedColumns = cols;
+    }
+    return this._savedColumns;
 }
 
 
