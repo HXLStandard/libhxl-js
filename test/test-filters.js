@@ -234,4 +234,9 @@ QUnit.test("replace all matches", function(assert) {
     assert.deepEqual(filter.displayTags, ['#org+foo', '#org+foo', '#sector+cluster', '#adm1', '#population+num']);
 });
 
+QUnit.test("replace only one match", function(assert) {
+    var filter = new hxl.classes.RenameFilter(this.dataset, '#org', '#org+foo', undefined, 1);
+    assert.deepEqual(filter.displayTags, ['#org', '#org+foo', '#sector+cluster', '#adm1', '#population+num']);
+});
+
 // end

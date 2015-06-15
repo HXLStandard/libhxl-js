@@ -1153,20 +1153,28 @@ hxl.classes.RenameFilter.prototype.getColumns = function() {
     var cols, header;
     var pattern = this.pattern;
     var tagspec = this.newTagspec;
+    var index = this.index;
     if (this._savedColumns === undefined) {
         cols = [];
+        // loop through the columns, translating as needed
         this.source.getColumns().forEach(function (col) {
-            if (pattern.match(col)) {
+            // Index has to be 0 or undefined for a match
+            if (pattern.match(col) && !index) {
+                // we have a match!
                 if (this.header === undefined) {
                     header = col.header;
                 } else {
                     header = this.header;
                 }
                 col = hxl.classes.Column.parse(tagspec, header);
-                console.log(col);
                 cols.push(col);
             } else {
+                // no match: use existing column
                 cols.push(col);
+            }
+            // decrement the index counter if present
+            if (index) {
+                index -= 1;
             }
         });
         this._savedColumns = cols;
