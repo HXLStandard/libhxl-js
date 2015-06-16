@@ -230,13 +230,23 @@ QUnit.test("test numeric aggregation", function(assert) {
 //
 
 QUnit.test("replace all matches", function(assert) {
+    var expectedTags = ['#org+foo', '#org+foo', '#sector+cluster', '#adm1', '#population+num'];
+    // test class directly
     var filter = new hxl.classes.RenameFilter(this.dataset, '#org', '#org+foo');
-    assert.deepEqual(filter.displayTags, ['#org+foo', '#org+foo', '#sector+cluster', '#adm1', '#population+num']);
+    assert.deepEqual(filter.displayTags, expectedTags);
+    // test filter function
+    filter = this.dataset.rename('#org', '#org+foo');
+    assert.deepEqual(filter.displayTags, expectedTags);
 });
 
 QUnit.test("replace only one match", function(assert) {
+    var expectedTags = ['#org', '#org+foo', '#sector+cluster', '#adm1', '#population+num'];
+    // test class directly
     var filter = new hxl.classes.RenameFilter(this.dataset, '#org', '#org+foo', undefined, 1);
-    assert.deepEqual(filter.displayTags, ['#org', '#org+foo', '#sector+cluster', '#adm1', '#population+num']);
+    assert.deepEqual(filter.displayTags, expectedTags);
+    // test filter function
+    filter = this.dataset.rename('#org', '#org+foo', undefined, 1);
+    assert.deepEqual(filter.displayTags, expectedTags);
 });
 
 // end
