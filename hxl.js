@@ -200,6 +200,19 @@ hxl.classes.Source.prototype.getValues = function(pattern) {
 }
 
 /**
+ * Check if a dataset contains at least one column matching a pattern.
+ */
+hxl.classes.Source.prototype.hasColumn = function (pattern) {
+    var pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
+    this.getColumns().forEach(function (col) {
+        if (pattern.match(col)) {
+            return true;
+        }
+    });
+    return false;
+}
+
+/**
  * Get a list of indices for columns matching a tag pattern.
  */
 hxl.classes.Source.prototype.getMatchingColumns = function(pattern) {
