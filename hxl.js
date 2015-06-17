@@ -328,6 +328,15 @@ hxl.classes.Source.prototype.rename = function(pattern, newTag, newHeader, index
     return new hxl.classes.RenameFilter(this, pattern, newTag, newHeader, index);
 }
 
+/**
+ * Return the data source wrapped in a hxl.classes.CacheFilter
+ *
+ * @return a new data source, with all transformations cached.
+ */
+hxl.classes.Source.prototype.cache = function() {
+    return new hxl.classes.CacheFilter(this);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 // hxl.classes.Dataset
@@ -1180,6 +1189,53 @@ hxl.classes.RenameFilter.prototype.getColumns = function() {
         this._savedColumns = cols;
     }
     return this._savedColumns;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+// hxl.classes.CacheFilter
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * HXL filter to save a copy of a transformed HXL dataset.
+ *
+ * This filter stops the chain, so that any future requests won't
+ * go back and repeat earlier transformations. You should use it
+ * when there are some expensive operations earlier in the chain
+ * that you don't want to repeat.
+ *
+ * @param source the hxl.classes.Source
+ */
+hxl.classes.CacheFilter = function (source) {
+    hxl.classes.BaseFilter.call(this, source);
+    this._savedColumns = undefined;
+    this._savedRows = undefined;
+}
+
+hxl.classes.CacheFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
+hxl.classes.CacheFilter.prototype.constructor = hxl.classes.CacheFilter;
+
+hxl.classes.CacheFilter.prototype.getColumns = function() {
+    if (this._savedColumns === undefined) {
+        this._savedColumns = this.source.getColumns();
+    }
+    return this._savedColumns;
+}
+
+hxl.classes.CacheFilter.prototype.iterator = function() {
+    var index = 0;
+    if (this._savedRows === undefined) {
+        this._savedRows = this.source.getRows();
+    }
+    return {
+        next: function() {
+            if (index < this._savedRows.length) {
+                return this._savedRows[index++];
+            } else {
+                return null;
+            }
+        }
+    };
 }
 
 

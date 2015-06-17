@@ -249,4 +249,17 @@ QUnit.test("replace only one match", function(assert) {
     assert.deepEqual(filter.displayTags, expectedTags);
 });
 
+
+//
+// HXL.classes.CacheFilter
+//
+
+QUnit.test("cache the parsing stream", function(assert) {
+    // not testing for actual caching; just that the filter passes through
+    var filter = new hxl.classes.CacheFilter(this.dataset.withColumns('#sector'));
+    assert.deepEqual(filter.displayTags, ['#sector+cluster'])
+    filter = this.dataset.withColumns('#sector').cache();
+    assert.deepEqual(filter.displayTags, ['#sector+cluster']);
+});
+
 // end
