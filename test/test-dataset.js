@@ -64,8 +64,4 @@ QUnit.test("numbery", function(assert) {
     assert.ok(this.dataset.isNumbery('#reached'));
 });
 
-QUnit.test("matching columns", function(assert) {
-    assert.equal(this.dataset.getMatchingColumns('#org').length, 2);
-});
-
 // end

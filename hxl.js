@@ -15,9 +15,21 @@
 
 /**
  * Root hxl object, from which everything else starts.
+ *
+ * See {@link hxl.classes.Source} for a list of methods to use on a
+ * HXL object.
+ *
+ * @namespace
  */
 var hxl = {
+    /**
+     * @namespace
+     */
     classes: {},
+
+    /**
+     * List of attached loggers
+     */
     loggers: []
 };
 
@@ -26,7 +38,7 @@ var hxl = {
  *
  * Add logger functions to hxl.loggers.
  *
- * @param message The message to log.
+ * @param {string} message The message to log.
  */
 hxl.log = function (message) {
     hxl.loggers.forEach(function (logger) {
@@ -36,6 +48,9 @@ hxl.log = function (message) {
 
 /**
  * Wrap a JavaScript array as a HXL dataset.
+ *
+ * @param {array} rawData an array of arrays of raw strings to wrap
+ * @return a new {@link hxl.classes.Dataset}
  */
 hxl.wrap = function (rawData) {
     return new hxl.classes.Dataset(rawData);
@@ -47,8 +62,8 @@ hxl.wrap = function (rawData) {
  * The callback takes a single argument, which is
  * the HXL data source (when successfully loaded).
  *
- * @param url The URL of the HXL dataset to load.
- * @param callback The function to call when loaded.
+ * @param {string} url The URL of the HXL dataset to load.
+ * @param {function} callback The function to call when loaded.
  */
 hxl.load = function (url, callback) {
     if (typeof(Papa) != 'undefined' && typeof(Papa.parse) != 'undefined') {
@@ -69,6 +84,9 @@ hxl.load = function (url, callback) {
 
 /**
  * Normalise case and whitespace in a string.
+ *
+ * @param {string} value The string value to normalise.
+ * @return {string} the string with case and whitespace normalised.
  */
 hxl.norm = function (value) {
     if (value) {
@@ -86,6 +104,13 @@ hxl.norm = function (value) {
 /**
  * Abstract base class for any HXL data source.
  * Derived classes must define getColumns() and iterator()
+ *
+ * @constructor
+ * @property {array} columns an array of column specs (see {@link #getColumns})
+ * @property {array} rows an array of data rows (see {@link #getRows})
+ * @property {array} headers an array of string headers (see {@link #getHeaders})
+ * @property {array} tags an array of string tags, without attributes (see {@link #getTags})
+ * @property {array} displayTags an array of display tags, with attributes (see {@link #getDisplayTags})
  */
 hxl.classes.Source = function() {
     var prototype = Object.getPrototypeOf(this);
@@ -112,13 +137,35 @@ hxl.classes.Source = function() {
 }
 
 /**
+ * Get a list of columns for a HXL dataset.
+ * @method
+ * @return {array} an array of {@link hxl.classes.Column} objects.
+ * @see #columns
+ * @see #getRows
+ */
+hxl.classes.Source.prototype.getColumns = undefined;
+
+/**
+ * Get an iterator to read through the rows of a HXL dataset.
+ * The iterator will have a next() method to read each row in sequence, and
+ * will return null once the rows are exhausted.
+ * @method
+ * @return {object} An iterator object with a .next() method.
+ * @see #getRows
+ */
+hxl.classes.Source.prototype.iterator = undefined;
+
+/**
  * Get an array of row objects.
  *
  * This method might be highly inefficient, depending on the
  * implementation in the derived class. Normally, it's best
  * to go through the rows using an iterator.
  *
- * @return An array of hxl.classes.Row objects.
+ * @return {array} An array of {@link hxl.classes.Row} objects.
+ * @see #rows
+ * @see #iterator
+ * @see #getColumns
  */
 hxl.classes.Source.prototype.getRows = function () {
     var row;
@@ -131,7 +178,14 @@ hxl.classes.Source.prototype.getRows = function () {
 }
 
 /**
- * Get an array of string headers.
+ * Get an array of human-readable column headers.
+ *
+ * These are the headers that come before the HXL hashtag row.
+ *
+ * @return {array} An array of strings.
+ * @see #getTags
+ * @see #getDisplayTags
+ * @see #getColumns
  */
 hxl.classes.Source.prototype.getHeaders = function () {
     return this.columns.map(function (col) { return col.header; });
@@ -139,6 +193,13 @@ hxl.classes.Source.prototype.getHeaders = function () {
 
 /**
  * Get an array of tags.
+ *
+ * These are plain tags, without attributes.
+ *
+ * @return {array} An array of strings.
+ * @see #getDisplayTags
+ * @see #getHeaders
+ * @see #getColumns
  */
 hxl.classes.Source.prototype.getTags = function () {
     return this.columns.map(function (col) { return col.tag; });
@@ -146,6 +207,13 @@ hxl.classes.Source.prototype.getTags = function () {
 
 /**
  * Get an array of tagspecs.
+ *
+ * These are full tagspecs, with attributes.
+ *
+ * @return {array} An array of strings.
+ * @see #getTags
+ * @see #getHeaders
+ * @see #getColumns
  */
 hxl.classes.Source.prototype.getDisplayTags = function () {
     return this.columns.map(function (col) { return col.displayTag; });
@@ -153,6 +221,11 @@ hxl.classes.Source.prototype.getDisplayTags = function () {
 
 /**
  * Get the minimum value for a column
+ *
+ * Uses a < comparison, ignoring empty cells.
+ *
+ * @return {string} the lowest value in the column.
+ * @see #getMax
  */
 hxl.classes.Source.prototype.getMin = function(pattern) {
     var min, row, value;
@@ -168,7 +241,12 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
 }
 
 /**
- * Get the minimum value for a column
+ * Get the maximum value for a column
+ *
+ * Uses a > comparison, ignoring empty cells.
+ *
+ * @return {string} the highest value in the column.
+ * @see #getMin
  */
 hxl.classes.Source.prototype.getMax = function(pattern) {
     var max, row, value;
@@ -186,6 +264,11 @@ hxl.classes.Source.prototype.getMax = function(pattern) {
 
 /**
  * Get a list of unique values for a tag
+ * 
+ * Uses a map to store unique values.
+ *
+ * @param {hxl.classes.Pattern} pattern A tag pattern to match for the column(s).
+ * @return {array} A list of unique values.
  */
 hxl.classes.Source.prototype.getValues = function(pattern) {
     var row;
@@ -201,6 +284,11 @@ hxl.classes.Source.prototype.getValues = function(pattern) {
 
 /**
  * Check if a dataset contains at least one column matching a pattern.
+ *
+ * @param {hxl.classes.Pattern} pattern A tag pattern to match for the column(s).
+ * @return {boolean} true if there's a match, false otherwise.
+ * @see #getColumns
+ * @see 
  */
 hxl.classes.Source.prototype.hasColumn = function (pattern) {
     var pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
@@ -213,20 +301,6 @@ hxl.classes.Source.prototype.hasColumn = function (pattern) {
 }
 
 /**
- * Get a list of indices for columns matching a tag pattern.
- */
-hxl.classes.Source.prototype.getMatchingColumns = function(pattern) {
-    var result = [];
-    var pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
-    this.getColumns().forEach(function (col) {
-        if (pattern.match(col)) {
-            result.push(col);
-        }
-    });
-    return result;
-}
-
-/**
  * Fire a callback on each row of data.
  *
  * The callback has the form
@@ -236,8 +310,9 @@ hxl.classes.Source.prototype.getMatchingColumns = function(pattern) {
  * (Often, the callback will need to bother with only the first parameter,
  * so function (row) {} will be more typical).
  *
- * @param callback function that will get called for each row of data.
- * @return the number of rows processed.
+ * @param {function} callback Callback function for each row of data.
+ * @return {int} The number of rows processed.
+ * @see #iterator
  */
 hxl.classes.Source.prototype.each = function(callback) {
     var row, rowNumber = 0, iterator = this.iterator();
@@ -248,15 +323,19 @@ hxl.classes.Source.prototype.each = function(callback) {
 }
 
 /**
- * Alias each() to forEach()
+ * Alias each() to {@link #forEach}
+ * @function
  */
 hxl.classes.Source.prototype.forEach = hxl.classes.Source.prototype.each;
 
 /**
  * Test if a tag pattern points mainly to numbers.
  *
- * @param pattern The tag pattern to test.
- * @return true if at least 90% of the non-null values are numeric.
+ * This method is useful for trying to guess which columns contain numeric
+ * values that can be graphed.
+ *
+ * @param {hxl.classes.Pattern} pattern A tag pattern to match for the column(s).
+ * @return {boolean} true if at least 90% of the non-null values are numeric.
  */
 hxl.classes.Source.prototype.isNumbery = function(pattern) {
     var total_seen = 0;
@@ -275,9 +354,10 @@ hxl.classes.Source.prototype.isNumbery = function(pattern) {
 /**
  * Filter rows to include only those that match at least one predicate.
  *
- * @param predicates a list of predicates.  See
- * hxl.classes.RowFilter for details.
- * @return a new data source, including only selected data rows.
+ * @param {array or string} predicates a single string predicate or a list of predicates.
+ * See {@link hxl.classes.RowFilter} for details.
+ * @return {hxl.classes.Source} A new data source, including only selected data rows.
+ * @see hxl.classes.RowFilter
  */
 hxl.classes.Source.prototype.withRows = function(predicates) {
     return new hxl.classes.RowFilter(this, predicates, false);
@@ -286,19 +366,23 @@ hxl.classes.Source.prototype.withRows = function(predicates) {
 /**
  * Filter rows to include only those that match none of the predicates.
  *
- * @param predicates a list of predicates.  See
- * hxl.classes.RowFilter for details.
- * @return a new data source, excluding matching data rows.
+ * @param predicates a single string predicate or a list of predicates.
+ * See {@link hxl.classes.RowFilter} for details.
+ * @return {hxl.classes.Source} A new data source, excluding matching data rows.
+ * @see hxl.classes.RowFilter
  */
 hxl.classes.Source.prototype.withoutRows = function(predicates) {
     return new hxl.classes.RowFilter(this, predicates, true);
 }
 
 /**
- * Return this data source wrapped in a hxl.classes.ColumnFilter
+ * Filter columns to include only those that match the pattern(s) provided.
  *
- * @param patterns a list of tag patterns for included columns (whitelist).
- * @return a new data source, including only matching columns.
+ * @param {array or string} patterns A single string tag pattern or a
+ * list of tag patterns for included columns (whitelist). See {@link
+ * hxl.classes.Pattern} for details.
+ * @return {hxl.classes.Source} A new data source, including only matching columns.
+ * @see #withoutColumns
  */
 hxl.classes.Source.prototype.withColumns = function(patterns) {
     return new hxl.classes.ColumnFilter(this, patterns);
@@ -307,8 +391,11 @@ hxl.classes.Source.prototype.withColumns = function(patterns) {
 /**
  * Return this data source wrapped in a hxl.classes.ColumnFilter
  *
- * @param patterns a list of tag patterns for excluded columns (blacklist).
- * @return a new data source, excluding matching columns.
+ * @param {array or string} patterns A single string tag pattern or a
+ * list of tag patterns for excluded columns (blacklist). See {@link
+ * hxl.classes.Pattern} for details.
+ * @return {hxl.classes.Source} A new data source, excluding matching columns.
+ * @see #withColumns
  */
 hxl.classes.Source.prototype.withoutColumns = function(patterns) {
     return new hxl.classes.ColumnFilter(this, patterns, true);
@@ -317,11 +404,12 @@ hxl.classes.Source.prototype.withoutColumns = function(patterns) {
 /**
  * Return this data source wrapped in a hxl.classes.CountFilter
  *
- * @param patterns a list of tag patterns for which to count the
- * unique combinations 
- * @param aggregate (optional) a single numeric tag pattern for which
+ * @param {array or string} patterns A single string tag pattern or a
+ * list of tag patterns for counting unique combinations. See {@link
+ * hxl.classes.Pattern#parse} for details.
+ * @param aggregate {string} (optional) A single numeric tag pattern for which
  * to produce aggregate values
- * @return a new data source, including the aggregated data.
+ * @return {hxl.classes.Source} A new data source, including the aggregated data.
  */
 hxl.classes.Source.prototype.count = function(patterns, aggregate) {
     return new hxl.classes.CountFilter(this, patterns, aggregate);
@@ -330,12 +418,14 @@ hxl.classes.Source.prototype.count = function(patterns, aggregate) {
 /**
  * Return this data source wrapped in a hxl.classes.RenameFilter
  *
- * @param pattern the tag pattern to match for replacement.
- * @param newTag the new HXL tag spec (e.g. "#adm1+code").
- * @param newHeader (optional) the new header. If undefined, don't change.
- * @param index the zero-based index to replace among matching tags. If undefined,
+ * @param {string} pattern The tag pattern to match for replacement.
+ * See {@link hxl.classes.Pattern#parse} for details.
+ * @param newTag the new HXL tag spec (e.g. "#adm1+code"). See {@link
+ * hxl.classes.Column#parse} for details.
+ * @param {string} newHeader (optional) The new header. If undefined, don't change.
+ * @param {int} index The zero-based index to replace among matching tags. If undefined,
  * replace *all* matches.
- * @return a new data source, with matching column(s) replaced.
+ * @return {hxl.classes.Source} A new data source, with matching column(s) replaced.
  */
 hxl.classes.Source.prototype.rename = function(pattern, newTag, newHeader, index) {
     return new hxl.classes.RenameFilter(this, pattern, newTag, newHeader, index);
@@ -358,6 +448,9 @@ hxl.classes.Source.prototype.cache = function() {
 /**
  * An original HXL dataset (including the raw data)
  * Derived from hxl.classes.Source
+ * @constructor
+ * @augments hxl.classes.Source
+ * @param {array} rawData An array of arrays of raw strings (tabular).
  */
 hxl.classes.Dataset = function (rawData) {
     hxl.classes.Source.call(this);
@@ -461,6 +554,7 @@ hxl.classes.Dataset.prototype._isTagRow = function(rawRow) {
 
 /**
  * Wrapper for a HXL column definition.
+ * @constructor
  */
 hxl.classes.Column = function (tag, attributes, header) {
     this.tag = tag;
@@ -506,6 +600,7 @@ hxl.classes.Column.parse = function(spec, header, useException) {
 
 /**
  * Wrapper for a HXL column definition.
+ * @constructor
  */
 hxl.classes.Pattern = function (tag, include_attributes, exclude_attributes) {
     this.tag = tag;
@@ -599,6 +694,7 @@ hxl.classes.Pattern.toString = function() {
 
 /**
  * Wrapper for a row of HXL data.
+ * @constructor
  */
 hxl.classes.Row = function (values, columns) {
     this.values = values;
@@ -644,6 +740,17 @@ hxl.classes.Row.prototype.getAll = function(pattern) {
 // hxl.classes.BaseFilter (override for specific filters).
 ////////////////////////////////////////////////////////////////////////
 
+/**
+ * Abstract class for a HXL filter.
+ *
+ * Provide basic scaffolding for creating a class that reads from
+ * a HXL source, transforms the data on the fly, then sends out a new
+ * stream of HXL data.
+ *
+ * @constructor
+ * @augments hxl.classes.Source
+ * @param {hxl.classes.Source} source Another HXL data source to read from.
+ */
 hxl.classes.BaseFilter = function (source) {
     hxl.classes.Source.call(this);
     this.source = source;
@@ -680,6 +787,7 @@ hxl.classes.BaseFilter.prototype.iterator = function() {
  * Predicates are always "OR"'d together. If you need
  * a logical "AND", then chain another select filter.
  *
+ * @constructor
  * @param source the hxl.classes.Source
  * @param predicates a list of predicates, each of 
  * has a "test" property (and optionally, a "pattern" property).
@@ -846,6 +954,7 @@ hxl.classes.RowFilter.prototype._tryPredicates = function(row) {
 /**
  * HXL filter class to remove columns from a dataset.
  *
+ * @constructor
  * @param source the HXL data source (may be another filter).
  * @param patterns a list of HXL tag patterns to include (or exclude).
  * @param invert if true, exclude matching columns rather than including them (blacklist).
@@ -959,6 +1068,7 @@ hxl.classes.ColumnFilter.prototype._compilePatterns = function (patterns) {
  * average (mean), minimum, and maximum values for the tag, attaching
  * the attributes +sum, +avg, +min, and +max to the core tag.
  *
+ * @constructor
  * @param source the HXL data source (may be another filter).
  * @param patterns a list of tag patterns (strings or hxl.classes.Pattern
  * objects) whose values make up a shared key.
@@ -1148,6 +1258,7 @@ hxl.classes.CountFilter.prototype._makeKey = function(row) {
 /**
  * HXL filter to rename a column (new header and tag).
  *
+ * @constructor
  * @param source the hxl.classes.Source
  * @param pattern the tag pattern to replace
  * @param newTag the new HXL tag (with attributes)
@@ -1217,7 +1328,9 @@ hxl.classes.RenameFilter.prototype.getColumns = function() {
  * when there are some expensive operations earlier in the chain
  * that you don't want to repeat.
  *
- * @param source the hxl.classes.Source
+ * @constructor
+ * @this {CacheFilter}
+ * @param {hxl.classes.Source} source the hxl.classes.Source
  */
 hxl.classes.CacheFilter = function (source) {
     hxl.classes.BaseFilter.call(this, source);
