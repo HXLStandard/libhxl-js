@@ -7,7 +7,9 @@ http://hxlstandard.org
 
 # Overview
 
-This library supports high-level filtering and aggregation operations on HXL datasets.  
+This library supports high-level filtering and aggregation operations
+on HXL datasets.  Auto-generated API documentation (which may or may
+not be up to date) is available at https://hxlstandard.github.io/libhxl-js/
 
 # Processing data
 
