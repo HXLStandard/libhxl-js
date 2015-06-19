@@ -67,6 +67,13 @@ hxl.load = function (url, callback) {
     }
 };
 
+/** 
+* Load a HXL dataset from a string
+*/
+hxl.parseString = function(string) {
+    return hxl.wrap(Papa.parse(string).data);
+}
+
 /**
  * Normalise case and whitespace in a string.
  */
