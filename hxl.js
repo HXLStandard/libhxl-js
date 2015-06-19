@@ -19,6 +19,7 @@
  * See {@link hxl.classes.Source} for a list of methods to use on a
  * HXL object.
  *
+ * @global
  * @namespace
  */
 var hxl = {
@@ -759,6 +760,7 @@ hxl.classes.Dataset.prototype._isTagRow = function(rawRow) {
 /**
  * Wrapper for a HXL column definition.
  * @constructor
+ * @see hxl.classes.Pattern
  */
 hxl.classes.Column = function (tag, attributes, header) {
     this.tag = tag;
@@ -814,8 +816,46 @@ hxl.classes.Column.prototype.clone = function() {
 ////////////////////////////////////////////////////////////////////////
 
 /**
- * Wrapper for a HXL column definition.
+ * A compiled pattern for matching HXL columns.
+ *
+ * <p>You should not normally call this constructor directly. All
+ * functions that use a pattern compile it as needed, so you can stick
+ * with strings.  If you want to precompile a pattern, use the static
+ * {@link #parse} method.</p>
+ *
+ * <p>The other useful method in this class is {@link #match}, with
+ * tests the pattern against a {@link hxl.classes.Column}.</p>
+ *
+ * <p>A pattern specification looks like a normal HXL hashtag and
+ * attributes, except that it can contain "-" attributes as well as
+ * "+" attributes. For example, the following pattern matches any
+ * column with the tag "#org", the attribute "+funder", and *not* the
+ * attribute "+impl" (any other attributes are ignored):</p>
+ *
+ * <pre>
+ * #org+funder-impl
+ * </pre>
+ *
+ * <p>More examples:</p>
+ *
+ * <p><b>#adm1</b> will match the following: #adm1, #adm1+code, #adm1+fr,
+ * #adm1+name, etc.</p>
+ *
+ * <p><b>#adm1-code</b> will match #adm1, #adm1+fr, and #adm1+name,
+ * but *not* #adm1+code (because the +code attribute is explicitly
+ * forbidden).</p>
+ *
+ * <p><b>#adm1+name-fr</b> will match #adm1+name or #adm1+name+en, but
+ * not #adm1+name+fr</p>
+ *
  * @constructor
+ * @param {string} tag The basic tag to use in the pattern, with the
+ * leading '#'
+ * @param {array} include_attributes A (possibly-empty) list of
+ * attribute names that must be present, without the leading '+'
+ * @param {array} exclude_attributes A (possibly-empty) list of
+ * attribute names that must *not* be present, without the leading '+'
+ * @see hxl.classes.Column
  */
 hxl.classes.Pattern = function (tag, include_attributes, exclude_attributes) {
     this.tag = tag;
@@ -823,6 +863,22 @@ hxl.classes.Pattern = function (tag, include_attributes, exclude_attributes) {
     this.exclude_attributes = exclude_attributes;
 }
 
+/**
+ * Test if a column matches this pattern.
+ *
+ * <pre>
+ * data.columns.forEach(function(col) {
+ *   if (pattern.match(col)) {
+ *     console.log("Found a match: " + col.displayTag);
+ *   }
+ * });
+ * </pre>
+ *
+ * This method is used heavily in the filter classes.
+ *
+ * @param {hxl.classes.Column} column The column to test.
+ * @return {boolean} true on match, false otherwise.
+ */
 hxl.classes.Pattern.prototype.match = function(column) {
     var attribute, i;
 
@@ -853,7 +909,14 @@ hxl.classes.Pattern.prototype.match = function(column) {
 /**
  * Parse a string into a tag pattern.
  *
- * @param pattern a tag-pattern string, like "#org+funder-impl"
+ * <pre>
+ * var pattern = hxl.classes.Pattern.parse('#org+funder-impl');
+ * </pre>
+ *
+ * It is safe to pass an already-compiled {@link hxl.classes.Pattern}
+ * to this method; it will simple be returned as-is.
+ *
+ * @param {string} pattern a tag-pattern string, like "#org+funder-impl"
  * @param useException (optional) throw an exception on failure.
  * @return a hxl.classes.Pattern, or null if parsing fails (and useException is false).
  */
