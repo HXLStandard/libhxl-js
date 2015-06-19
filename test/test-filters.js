@@ -262,4 +262,17 @@ QUnit.test("cache the parsing stream", function(assert) {
     assert.deepEqual(filter.displayTags, ['#sector+cluster']);
 });
 
+
+//
+// HXL.classes.IndexFilter
+//
+
+QUnit.test("Add index attributes to repeated tags", function(assert) {
+    var expectedTags = ['#org+i0', '#org+i1', '#sector+cluster', '#adm1', '#population+num'];
+    var filter = new hxl.classes.IndexFilter(this.dataset, '#org');
+    assert.deepEqual(filter.displayTags, expectedTags);
+    filter = this.dataset.index('org');
+    assert.deepEqual(filter.displayTags, expectedTags);
+});
+
 // end

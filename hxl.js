@@ -618,6 +618,25 @@ hxl.classes.Source.prototype.cache = function() {
     return new hxl.classes.CacheFilter(this);
 }
 
+/**
+ * Number repeated tags +i0, +i1, etc.
+ *
+ * This method is mainly useful for handling repeated tags that aren't
+ * distinguished by semantic attributes like +funder or
+ * +main. Numbering happens from left to right:
+ *
+ * <pre>
+ * var filtered = data.index('org');
+ * </pre>
+ *
+ * @param {string} pattern A {hxl.classes.Pattern} for matching tag to index.
+ * @return {hxl.classes.Source} a new data source, with index attributes added.
+ * @see hxl.classes.IndexFilter
+ */
+hxl.classes.Source.prototype.index = function(pattern) {
+    return new hxl.classes.IndexFilter(this, pattern);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 // hxl.classes.Dataset
@@ -769,7 +788,18 @@ hxl.classes.Column.parse = function(spec, header, useException) {
         hxl.log("Bad tag specification: " + spec);
         return null;
     }
-}
+};
+
+/**
+ * Create a deep copy of this column spec.
+ *
+ * This method is mainly useful for filters that want to modify a column.
+ *
+ * @return {hxl.classes.Column} A deep copy of this columns spec.
+ */
+hxl.classes.Column.prototype.clone = function() {
+    return new hxl.classes.Column(this.tag, this.attributes.slice(0), this.header);
+};
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -832,7 +862,7 @@ hxl.classes.Pattern.parse = function(pattern, useException) {
             return null;
         }
     } else {
-        result = pattern.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
+        result = pattern.match(/^\s*#?([A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
         if (result) {
             include_attributes = [];
             exclude_attributes = [];
@@ -844,7 +874,7 @@ hxl.classes.Pattern.parse = function(pattern, useException) {
                     exclude_attributes.push(attribute_specs[i+1]);
                 }
             }
-            return new hxl.classes.Pattern(result[1], include_attributes, exclude_attributes);
+            return new hxl.classes.Pattern('#' + result[1], include_attributes, exclude_attributes);
         } else if (useException) {
             throw "Bad tag pattern: " + pattern;
         } else {
@@ -1542,5 +1572,48 @@ hxl.classes.CacheFilter.prototype.iterator = function() {
     };
 }
 
+
+////////////////////////////////////////////////////////////////////////
+// hxl.classes.IndexFilter
+////////////////////////////////////////////////////////////////////////
+
+/**
+ * Add index attributes (+i0, +i1, etc.) to a repeated tag.
+ *
+ * This is useful for query-type processing, where it's not otherwise
+ * easy to work with order. Normally, it's better to use semantic
+ * attributes like #org+funder, #org+impl, etc., but in some cases,
+ * that's not available, so you can automatically number the tags
+ * as #org+i0, #org+i1, etc., from left to right.
+ *
+ * @constructor
+ * @this{IndexFilter}
+ * @param {hxl.classes.Source} source the hxl.classes.Source
+ * @param {string} pattern the tag pattern to replace (see {@link hxl.classes.Pattern}).
+ */
+hxl.classes.IndexFilter = function (source, pattern) {
+    hxl.classes.BaseFilter.call(this, source);
+    this.pattern = hxl.classes.Pattern.parse(pattern);
+}
+
+hxl.classes.IndexFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
+hxl.classes.IndexFilter.prototype.constructor = hxl.classes.IndexFilter;
+
+hxl.classes.IndexFilter.prototype.getColumns = function() {
+    var pattern = this.pattern;
+    if (this._savedColumns == undefined) {
+        var i = 0;
+        var cols = [];
+        this.source.columns.forEach(function (col) {
+            if (pattern.match(col)) {
+                col = col.clone();
+                col.attributes.push('i' + i++);
+            }
+            cols.push(col);
+        });
+        this._savedColumns = cols;
+    }
+    return this._savedColumns;
+}
 
 // end
