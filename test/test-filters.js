@@ -239,6 +239,19 @@ QUnit.test("replace all matches", function(assert) {
     assert.deepEqual(filter.displayTags, expectedTags);
 });
 
+QUnit.test("confirm changed columns set in rows", function(assert) {
+    var expectedTags = ['#org+foo', '#org+foo', '#sector+cluster', '#adm1', '#population+num'];
+    var actualTags = []
+    filter = this.dataset.rename('#org', '#org+foo');
+    filter.forEach(function (row) {
+        actualTags = [];
+        row.columns.forEach(function (col) {
+            actualTags.push(col.displayTag);
+        });
+        assert.deepEqual(actualTags, expectedTags);
+    });
+});
+
 QUnit.test("replace only one match", function(assert) {
     var expectedTags = ['#org', '#org+foo', '#sector+cluster', '#adm1', '#population+num'];
     // test class directly

@@ -1014,6 +1014,18 @@ hxl.classes.Row.prototype.getAll = function(pattern) {
 }
 
 
+/**
+ * Make a deep copy of a row's values (not the columns).
+ *
+ * This method is especially useful for filters.
+ *
+ * @return {hxl.classes.Row} a new row object.
+ */
+hxl.classes.Row.prototype.clone = function() {
+    return new hxl.classes.Row(this.values.slice(0), this.columns);
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 // hxl.classes.BaseFilter (override for specific filters).
 ////////////////////////////////////////////////////////////////////////
@@ -1591,6 +1603,25 @@ hxl.classes.RenameFilter.prototype.getColumns = function() {
         this._savedColumns = cols;
     }
     return this._savedColumns;
+}
+
+/**
+ * Return copies of the rows with the new columns.
+ *
+ * @returnn {fobject} A new row iterator, with a next() method.
+ */
+hxl.classes.RenameFilter.prototype.iterator = function () {
+    var iterator = this.source.iterator();
+    var outer = this;
+    return {
+        next: function() {
+            row = iterator.next();
+            if (row) {
+                row = new hxl.classes.Row(row.values, outer.getColumns());
+            }
+            return row;
+        }
+    };
 }
 
 
