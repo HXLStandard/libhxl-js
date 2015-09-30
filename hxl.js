@@ -401,11 +401,12 @@ hxl.classes.Source.prototype.getValues = function(pattern) {
  */
 hxl.classes.Source.prototype.hasColumn = function (pattern) {
     var pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
-    this.getColumns().forEach(function (col) {
-        if (pattern.match(col)) {
+    var cols =this.getColumns();
+    for (var i = 0; i < cols.length; i++) {
+        if (pattern.match(cols[i])) {
             return true;
         }
-    });
+    }
     return false;
 }
 
@@ -470,6 +471,7 @@ hxl.classes.Source.prototype.forEach = hxl.classes.Source.prototype.each;
  * @return {boolean} true if at least 90% of the non-null values are numeric.
  */
 hxl.classes.Source.prototype.isNumbery = function(pattern) {
+    console.log(pattern);
     var total_seen = 0;
     var numeric_seen = 0;
     this.getValues(pattern).forEach(function (value) {
