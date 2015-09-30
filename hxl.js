@@ -411,6 +411,20 @@ hxl.classes.Source.prototype.hasColumn = function (pattern) {
 }
 
 /**
+ * Get a list of indices for columns matching a tag pattern.
+ */
+hxl.classes.Source.prototype.getMatchingColumns = function(pattern) {
+    var result = [];
+    var pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
+    this.getColumns().forEach(function (col) {
+        if (pattern.match(col)) {
+            result.push(col);
+        }
+    });
+    return result;
+}
+
+/**
  * Fire a callback on each row of data.
  *
  * The callback has the form
