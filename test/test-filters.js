@@ -11,7 +11,7 @@ QUnit.module("hxl.classes.BaseFilters", {
         this.test_data = [
             ['Pointless header'],
             ['Organisation', 'Second organisation', 'Sector', 'Province', 'Targeted'],
-            ['#org', '#org', '#sector+cluster', '#adm1', '#population+num'],
+            ['#org', '#org', '#sector+cluster', '#adm1+name', '#population+num'],
             ['Org 1', 'Org 1a', 'WASH', 'Coastal Province', '300'],
             ['Org 2', '', 'Health', 'Mountain Province', '400'],
             ['Org 3', '', 'Protection', 'Coastal Province', '500']
@@ -47,11 +47,11 @@ QUnit.test("row filter value string predicate", function(assert) {
 
 QUnit.test("row filter predicate parsing", function(assert) {
     assert.deepEqual(
-        this.dataset.withRows(' #adm1 -foo =Coastal Province').getValues('#adm1'),
+        this.dataset.withRows(' #adm1-foo =Coastal Province').getValues('#adm1'),
         ['Coastal Province']
     );
     assert.deepEqual(
-        this.dataset.withRows('#adm1!=Coastal Province').getValues('#adm1'),
+        this.dataset.withRows('#adm1+name!=Coastal Province').getValues('#adm1'),
         ['Mountain Province']
     );
     assert.deepEqual(
@@ -160,7 +160,7 @@ QUnit.test("column filter blacklist", function(assert) {
     var filter = new hxl.classes.ColumnFilter(this.dataset, patterns, true);
     assert.deepEqual(filter.columns.map(function (col) {
         return col.displayTag;
-    }), ['#org', '#org', '#adm1', '#population+num']);
+    }), ['#org', '#org', '#adm1+name', '#population+num']);
     assert.deepEqual(filter.rows.map(function (row) {
         return row.values;
     }), this.test_data.slice(3).map(function (data) {
@@ -184,7 +184,7 @@ QUnit.test("count filter single column", function(assert) {
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
-    ), ['#adm1', '#meta+count']);
+    ), ['#adm1+name', '#meta+count']);
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
@@ -198,7 +198,7 @@ QUnit.test("count filter multiple columns", function(assert) {
     assert.equal(filter.rows.length, 3);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
-    ), ['#sector+cluster', '#adm1', '#meta+count']);
+    ), ['#sector+cluster', '#adm1+name', '#meta+count']);
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
@@ -217,7 +217,7 @@ QUnit.test("test numeric aggregation", function(assert) {
     ]);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
-    ), ['#adm1', '#meta+count', '#meta+sum', '#meta+avg', '#meta+min', '#meta+max']);
+    ), ['#adm1+name', '#meta+count', '#meta+sum', '#meta+avg', '#meta+min', '#meta+max']);
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, source.count(patterns, aggregate).columns);
@@ -230,7 +230,7 @@ QUnit.test("test numeric aggregation", function(assert) {
 //
 
 QUnit.test("replace all matches", function(assert) {
-    var expectedTags = ['#org+foo', '#org+foo', '#sector+cluster', '#adm1', '#population+num'];
+    var expectedTags = ['#org+foo', '#org+foo', '#sector+cluster', '#adm1+name', '#population+num'];
     // test class directly
     var filter = new hxl.classes.RenameFilter(this.dataset, '#org', '#org+foo');
     assert.deepEqual(filter.displayTags, expectedTags);
@@ -240,7 +240,7 @@ QUnit.test("replace all matches", function(assert) {
 });
 
 QUnit.test("confirm changed columns set in rows", function(assert) {
-    var expectedTags = ['#org+foo', '#org+foo', '#sector+cluster', '#adm1', '#population+num'];
+    var expectedTags = ['#org+foo', '#org+foo', '#sector+cluster', '#adm1+name', '#population+num'];
     var actualTags = []
     filter = this.dataset.rename('#org', '#org+foo');
     filter.forEach(function (row) {
@@ -253,7 +253,7 @@ QUnit.test("confirm changed columns set in rows", function(assert) {
 });
 
 QUnit.test("replace only one match", function(assert) {
-    var expectedTags = ['#org', '#org+foo', '#sector+cluster', '#adm1', '#population+num'];
+    var expectedTags = ['#org', '#org+foo', '#sector+cluster', '#adm1+name', '#population+num'];
     // test class directly
     var filter = new hxl.classes.RenameFilter(this.dataset, '#org', '#org+foo', undefined, 1);
     assert.deepEqual(filter.displayTags, expectedTags);
@@ -281,7 +281,7 @@ QUnit.test("cache the parsing stream", function(assert) {
 //
 
 QUnit.test("Add index attributes to repeated tags", function(assert) {
-    var expectedTags = ['#org+i0', '#org+i1', '#sector+cluster', '#adm1', '#population+num'];
+    var expectedTags = ['#org+i0', '#org+i1', '#sector+cluster', '#adm1+name', '#population+num'];
     var filter = new hxl.classes.IndexFilter(this.dataset, '#org');
     assert.deepEqual(filter.displayTags, expectedTags);
     filter = this.dataset.index('org');
