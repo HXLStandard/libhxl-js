@@ -33,7 +33,7 @@ QUnit.test("identity filter", function(assert) {
 
 QUnit.test("row filter value string predicate", function(assert) {
     var predicates = [
-        { pattern: '#adm1', test: 'Coastal Province'}
+        { pattern: '#adm1-code', test: 'Coastal Province'}
     ];
     var filter = new hxl.classes.RowFilter(this.dataset, predicates);
     assert.deepEqual(filter.columns, this.dataset.columns);
@@ -184,7 +184,7 @@ QUnit.test("count filter single column", function(assert) {
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
-    ), ['#adm1', '#count_num']);
+    ), ['#adm1', '#meta+count']);
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
@@ -198,7 +198,7 @@ QUnit.test("count filter multiple columns", function(assert) {
     assert.equal(filter.rows.length, 3);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
-    ), ['#sector+cluster', '#adm1', '#count_num']);
+    ), ['#sector+cluster', '#adm1', '#meta+count']);
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
@@ -208,7 +208,7 @@ QUnit.test("count filter multiple columns", function(assert) {
 QUnit.test("test numeric aggregation", function(assert) {
     var source = new hxl.classes.CountFilter(this.dataset, ['#sector', '#adm1']);
     var patterns = ['#adm1'];
-    var aggregate = '#count_num';
+    var aggregate = '#meta+count';
     var filter = new hxl.classes.CountFilter(source, patterns, aggregate);
     assert.equal(filter.rows.length, 2);
     assert.deepEqual(filter.rows.map(function (row) { return row.values; }), [
@@ -217,7 +217,7 @@ QUnit.test("test numeric aggregation", function(assert) {
     ]);
     assert.deepEqual(filter.columns.map(
         function (col) { return col.displayTag; }
-    ), ['#adm1', '#count_num', '#count_num+sum', '#count_num+avg', '#count_num+min', '#count_num+max']);
+    ), ['#adm1', '#meta+count', '#meta+sum', '#meta+avg', '#meta+min', '#meta+max']);
 
     // test that the convenience methods work
     assert.deepEqual(filter.columns, source.count(patterns, aggregate).columns);
