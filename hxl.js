@@ -316,7 +316,7 @@ hxl.classes.Source.prototype.getDisplayTags = function () {
  * </pre>
  *
  * @param {string} pattern The tag pattern for the column(s) to
- * use. See {@link hxl.classes.Pattern} for details.
+ * use. See {@link hxl.classes.TagPattern} for details.
  * @return {string} The lowest value in the column.
  * @see #getMax
  */
@@ -324,7 +324,7 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
     var min = null;
     var row, value;
     var iterator = this.iterator();
-    pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
+    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
         value = row.get(pattern);
         if (value !== null) {
@@ -350,7 +350,7 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
  * </pre>
  *
  * @param {string} pattern The tag pattern for the column(s) to
- * use. See {@link hxl.classes.Pattern} for details.
+ * use. See {@link hxl.classes.TagPattern} for details.
  * @return {string} the highest value in the column.
  * @see #getMin
  */
@@ -358,7 +358,7 @@ hxl.classes.Source.prototype.getMax = function(pattern) {
     var max = null;
     var row, value;
     var iterator = this.iterator();
-    pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
+    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
         value = row.get(pattern);
         if (value !== null) {
@@ -382,7 +382,7 @@ hxl.classes.Source.prototype.getMax = function(pattern) {
  * var sectorList = data.getValues('#sector');
  * </pre>
  *
- * @param {hxl.classes.Pattern} pattern A tag pattern to match for the column(s).
+ * @param {hxl.classes.TagPattern} pattern A tag pattern to match for the column(s).
  * @return {array} A list of unique values.
  */
 hxl.classes.Source.prototype.getValues = function(pattern) {
@@ -390,7 +390,7 @@ hxl.classes.Source.prototype.getValues = function(pattern) {
     var iterator = this.iterator();
     var value_map = {};
 
-    pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
+    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
         value_map[row.get(pattern)] = true;
     }
@@ -406,13 +406,13 @@ hxl.classes.Source.prototype.getValues = function(pattern) {
  * }
  * </pre>
  *
- * @param {hxl.classes.Pattern} pattern A tag pattern to match for the column(s).
+ * @param {hxl.classes.TagPattern} pattern A tag pattern to match for the column(s).
  * @return {boolean} true if there's a match, false otherwise.
  * @see #getColumns
  */
 hxl.classes.Source.prototype.hasColumn = function (pattern) {
     var cols =this.getColumns();
-    pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
+    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     for (var i = 0; i < cols.length; i++) {
         if (pattern.match(cols[i])) {
             return true;
@@ -426,7 +426,7 @@ hxl.classes.Source.prototype.hasColumn = function (pattern) {
  */
 hxl.classes.Source.prototype.getMatchingColumns = function(pattern) {
     var result = [];
-    pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
+    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     this.getColumns().forEach(function (col) {
         if (pattern.match(col)) {
             result.push(col);
@@ -492,13 +492,13 @@ hxl.classes.Source.prototype.forEach = hxl.classes.Source.prototype.each;
  * }
  * </pre>
  *
- * @param {hxl.classes.Pattern} pattern A tag pattern to match for the column(s).
+ * @param {hxl.classes.TagPattern} pattern A tag pattern to match for the column(s).
  * @return {boolean} true if at least 90% of the non-null values are numeric.
  */
 hxl.classes.Source.prototype.isNumbery = function(pattern) {
     var total_seen = 0;
     var numeric_seen = 0;
-    pattern = hxl.classes.Pattern.parse(pattern); // more efficient to precompile
+    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     this.rows.forEach(function (row) {
         var value = row.get(pattern);
         if (value) {
@@ -558,7 +558,7 @@ hxl.classes.Source.prototype.withoutRows = function(predicates) {
  *
  * @param {array or string} patterns A single string tag pattern or a
  * list of tag patterns for included columns (whitelist). See {@link
- * hxl.classes.Pattern} for details.
+ * hxl.classes.TagPattern} for details.
  * @return {hxl.classes.Source} A new data source, including only matching columns.
  * @see #withoutColumns
  * @see hxl.classes.ColumnFilter
@@ -579,7 +579,7 @@ hxl.classes.Source.prototype.withColumns = function(patterns) {
  *
  * @param {array or string} patterns A single string tag pattern or a
  * list of tag patterns for excluded columns (blacklist). See {@link
- * hxl.classes.Pattern} for details.
+ * hxl.classes.TagPattern} for details.
  * @return {hxl.classes.Source} A new data source, excluding matching columns.
  * @see #withColumns
  * @see hxl.classes.ColumnFilter
@@ -600,7 +600,7 @@ hxl.classes.Source.prototype.withoutColumns = function(patterns) {
  *
  * @param {array or string} patterns A single string tag pattern or a
  * list of tag patterns for counting unique combinations. See {@link
- * hxl.classes.Pattern#parse} for details.
+ * hxl.classes.TagPattern#parse} for details.
  * @param aggregate {string} (optional) A single numeric tag pattern for which
  * to produce aggregate values
  * @return {hxl.classes.Source} A new data source, including the aggregated data.
@@ -622,7 +622,7 @@ hxl.classes.Source.prototype.count = function(patterns, aggregate) {
  * </pre>
  *
  * @param {string} pattern The tag pattern to match for replacement.
- * See {@link hxl.classes.Pattern#parse} for details.
+ * See {@link hxl.classes.TagPattern#parse} for details.
  * @param newTag the new HXL tag spec (e.g. "#adm1+code"). See {@link
  * hxl.classes.Column#parse} for details.
  * @param {string} newHeader (optional) The new header. If undefined, don't change.
@@ -665,7 +665,7 @@ hxl.classes.Source.prototype.cache = function() {
  * var filtered = data.index('org');
  * </pre>
  *
- * @param {string} pattern A {hxl.classes.Pattern} for matching tag to index.
+ * @param {string} pattern A {hxl.classes.TagPattern} for matching tag to index.
  * @return {hxl.classes.Source} a new data source, with index attributes added.
  * @see hxl.classes.IndexFilter
  */
@@ -770,7 +770,7 @@ hxl.classes.Dataset.prototype._isTagRow = function(rawRow) {
     var seenTag = false, seenNonTag = false;
     rawRow.forEach(function (rawValue) {
         if (rawValue) {
-            if (String(rawValue).match(/^\s*#.*$/) && hxl.classes.Pattern.parse(rawValue)) {
+            if (String(rawValue).match(/^\s*#.*$/) && hxl.classes.TagPattern.parse(rawValue)) {
                 seenTag = true;
             } else {
                 seenNonTag = true;
@@ -788,7 +788,7 @@ hxl.classes.Dataset.prototype._isTagRow = function(rawRow) {
 /**
  * Wrapper for a HXL column definition.
  * @constructor
- * @see hxl.classes.Pattern
+ * @see hxl.classes.TagPattern
  */
 hxl.classes.Column = function (tag, attributes, header) {
     this.tag = tag;
@@ -840,7 +840,7 @@ hxl.classes.Column.prototype.clone = function() {
 
 
 ////////////////////////////////////////////////////////////////////////
-// hxl.classes.Pattern
+// hxl.classes.TagPattern
 ////////////////////////////////////////////////////////////////////////
 
 /**
@@ -879,16 +879,17 @@ hxl.classes.Column.prototype.clone = function() {
  * @constructor
  * @param {string} tag The basic tag to use in the pattern, with the
  * leading '#'
- * @param {array} include_attributes A (possibly-empty) list of
+ * @param {array} includeAttributes A (possibly-empty) list of
  * attribute names that must be present, without the leading '+'
- * @param {array} exclude_attributes A (possibly-empty) list of
+ * @param {array} excludeAttributes A (possibly-empty) list of
  * attribute names that must *not* be present, without the leading '+'
  * @see hxl.classes.Column
  */
-hxl.classes.Pattern = function (tag, include_attributes, exclude_attributes) {
+hxl.classes.TagPattern = function (tag, includeAttributes, excludeAttributes, isAbsolute) {
     this.tag = tag;
-    this.include_attributes = include_attributes;
-    this.exclude_attributes = exclude_attributes;
+    this.includeAttributes = includeAttributes;
+    this.excludeAttributes = excludeAttributes;
+    this.isAbsolute = isAbsolute; // defaults to a false value
 }
 
 /**
@@ -907,27 +908,42 @@ hxl.classes.Pattern = function (tag, include_attributes, exclude_attributes) {
  * @param {hxl.classes.Column} column The column to test.
  * @return {boolean} true on match, false otherwise.
  */
-hxl.classes.Pattern.prototype.match = function(column) {
+hxl.classes.TagPattern.prototype.match = function(column) {
     var attribute, i;
+
+    // if it's not already a column, parse it
+    if (!(column instanceof hxl.classes.Column)) {
+        column = hxl.classes.Column.parse(column, "");
+    }
 
     // tags must match
     if (column && this.tag != column.tag) {
         return false;
     }
 
+
     // include attributes must be present
-    for (i = 0; i < this.include_attributes.length; i++) {
-        attribute = this.include_attributes[i];
+    for (i = 0; i < this.includeAttributes.length; i++) {
+        attribute = this.includeAttributes[i];
         if (column.attributes.indexOf(attribute) < 0) {
             return false;
         }
     }
 
-    // exclude attributes must not be present
-    for (i = 0; i < this.exclude_attributes.length; i++) {
-        attribute = this.exclude_attributes[i];
-        if (column.attributes.indexOf(attribute) > -1) {
-            return false;
+    if (this.isAbsolute) {
+        // only includeAttributes are allowed
+        for (i = 0; i < column.attributes.length; i++) {
+            if (this.includeAttributes.indexOf(column.attributes[i]) < 0) {
+                return false;
+            }
+        }
+    } else {
+        // exclude attributes must not be present, but any others are OK
+        for (i = 0; i < this.excludeAttributes.length; i++) {
+            attribute = this.excludeAttributes[i];
+            if (column.attributes.indexOf(attribute) > -1) {
+                return false;
+            }
         }
     }
 
@@ -938,19 +954,19 @@ hxl.classes.Pattern.prototype.match = function(column) {
  * Parse a string into a tag pattern.
  *
  * <pre>
- * var pattern = hxl.classes.Pattern.parse('#org+funder-impl');
+ * var pattern = hxl.classes.TagPattern.parse('#org+funder-impl');
  * </pre>
  *
- * It is safe to pass an already-compiled {@link hxl.classes.Pattern}
+ * It is safe to pass an already-compiled {@link hxl.classes.TagPattern}
  * to this method; it will simple be returned as-is.
  *
  * @param {string} pattern a tag-pattern string, like "#org+funder-impl"
  * @param useException (optional) throw an exception on failure.
- * @return a hxl.classes.Pattern, or null if parsing fails (and useException is false).
+ * @return a hxl.classes.TagPattern, or null if parsing fails (and useException is false).
  */
-hxl.classes.Pattern.parse = function(pattern, useException) {
-    var result, include_attributes, exclude_attributes, attribute_specs, i;
-    if (pattern instanceof hxl.classes.Pattern) {
+hxl.classes.TagPattern.parse = function(pattern, useException) {
+    var result, includeAttributes, excludeAttributes, attribute_specs, i;
+    if (pattern instanceof hxl.classes.TagPattern) {
         // If this is already parsed, then just return it.
         return pattern;
     } else if (!pattern) {
@@ -960,19 +976,23 @@ hxl.classes.Pattern.parse = function(pattern, useException) {
             return null;
         }
     } else {
-        result = String(pattern).match(/^\s*#?([A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*$/);
+        result = String(pattern).match(/^\s*#?([A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*(!)?\s*$/);
         if (result) {
-            include_attributes = [];
-            exclude_attributes = [];
+            includeAttributes = [];
+            excludeAttributes = [];
             attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
             for (i = 0; i < attribute_specs.length; i += 2) {
                 if (attribute_specs[i] == "+") {
-                    include_attributes.push(attribute_specs[i+1]);
+                    includeAttributes.push(attribute_specs[i+1]);
                 } else {
-                    exclude_attributes.push(attribute_specs[i+1]);
+                    excludeAttributes.push(attribute_specs[i+1]);
                 }
             }
-            return new hxl.classes.Pattern('#' + result[1], include_attributes, exclude_attributes);
+            var isAbsolute = false;
+            if (result[3] == "!") {
+                isAbsolute = true;
+            }
+            return new hxl.classes.TagPattern('#' + result[1], includeAttributes, excludeAttributes, isAbsolute);
         } else if (useException) {
             throw "Bad tag pattern: " + pattern;
         } else {
@@ -982,7 +1002,7 @@ hxl.classes.Pattern.parse = function(pattern, useException) {
     }
 }
 
-hxl.classes.Pattern.toString = function() {
+hxl.classes.TagPattern.toString = function() {
     var s = this.tag;
     if (this.include_tags) {
         s += "+" + this.include_tags.join("+");
@@ -1015,7 +1035,7 @@ hxl.classes.Row = function (values, columns) {
  */
 hxl.classes.Row.prototype.get = function(pattern) {
     var i;
-    pattern = hxl.classes.Pattern.parse(pattern, true);
+    pattern = hxl.classes.TagPattern.parse(pattern, true);
     for (i = 0; i < this.columns.length && i < this.values.length; i++) {
         if (pattern.match(this.columns[i])) {
             return this.values[i];
@@ -1032,7 +1052,7 @@ hxl.classes.Row.prototype.get = function(pattern) {
  */
 hxl.classes.Row.prototype.getAll = function(pattern) {
     var row = this, values = [];
-    pattern = hxl.classes.Pattern.parse(pattern, true);
+    pattern = hxl.classes.TagPattern.parse(pattern, true);
     this.columns.forEach(function (column, index) {
         if (pattern.match(column)) {
             values.push(row.values[index]);
@@ -1169,7 +1189,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
      */
     var parsePattern = function (pattern) {
         if (pattern) {
-            return hxl.classes.Pattern.parse(pattern);
+            return hxl.classes.TagPattern.parse(pattern);
         } else {
             return null;
         }
@@ -1367,7 +1387,7 @@ hxl.classes.ColumnFilter.prototype._compilePatterns = function (patterns) {
         patterns = [ patterns ];
     }
     return patterns.map(function (pattern) {
-        return hxl.classes.Pattern.parse(pattern);
+        return hxl.classes.TagPattern.parse(pattern);
     });
 }
 
@@ -1388,7 +1408,7 @@ hxl.classes.ColumnFilter.prototype._compilePatterns = function (patterns) {
  *
  * @constructor
  * @param source the HXL data source (may be another filter).
- * @param patterns a list of tag patterns (strings or hxl.classes.Pattern
+ * @param patterns a list of tag patterns (strings or hxl.classes.TagPattern
  * objects) whose values make up a shared key.
  */
 hxl.classes.CountFilter = function (source, patterns, aggregate) {
@@ -1397,12 +1417,12 @@ hxl.classes.CountFilter = function (source, patterns, aggregate) {
         if (!Array.isArray(patterns)) {
             patterns = [ patterns ];
         }
-        this.patterns = patterns.map(function (pattern) { return hxl.classes.Pattern.parse(pattern, true); });
+        this.patterns = patterns.map(function (pattern) { return hxl.classes.TagPattern.parse(pattern, true); });
     } else {
         throw new Error("No tag patterns specified");
     }
     if (aggregate) {
-        this.aggregate = hxl.classes.Pattern.parse(aggregate, true);
+        this.aggregate = hxl.classes.TagPattern.parse(aggregate, true);
     } else {
         this.aggregate = null;
     }
@@ -1587,7 +1607,7 @@ hxl.classes.CountFilter.prototype._makeKey = function(row) {
  */
 hxl.classes.RenameFilter = function (source, pattern, newTagspec, newHeader, index) {
     hxl.classes.BaseFilter.call(this, source);
-    this.pattern = hxl.classes.Pattern.parse(pattern);
+    this.pattern = hxl.classes.TagPattern.parse(pattern);
     this.newTagspec = newTagspec;
     this.newHeader = newHeader;
     this.index = index;
@@ -1718,11 +1738,11 @@ hxl.classes.CacheFilter.prototype.iterator = function() {
  * @constructor
  * @this{IndexFilter}
  * @param {hxl.classes.Source} source the hxl.classes.Source
- * @param {string} pattern the tag pattern to replace (see {@link hxl.classes.Pattern}).
+ * @param {string} pattern the tag pattern to replace (see {@link hxl.classes.TagPattern}).
  */
 hxl.classes.IndexFilter = function (source, pattern) {
     hxl.classes.BaseFilter.call(this, source);
-    this.pattern = hxl.classes.Pattern.parse(pattern);
+    this.pattern = hxl.classes.TagPattern.parse(pattern);
 }
 
 hxl.classes.IndexFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
