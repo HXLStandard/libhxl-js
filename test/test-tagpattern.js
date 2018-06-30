@@ -56,4 +56,11 @@ QUnit.test("absolute pattern", function(assert) {
     assert.ok(!pattern.match("#foo+y+x"))
 });
 
+QUnit.test("wildcard pattern", function(assert) {
+    var pattern = hxl.classes.TagPattern.parse("#*+x");
+    assert.ok(pattern);
+    assert.ok(pattern.match("#foo+x"));
+    assert.ok(!pattern.match("#foo"));
+});
+
 // end

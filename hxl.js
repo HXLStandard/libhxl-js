@@ -816,9 +816,9 @@ hxl.classes.Column.parse = function(spec, header, useException) {
     if (result) {
         if (result[2]) {
             // filter out empty values
-            attributes = result[2].split(/\s*\+/).filter(function(attribute) { return attribute; });
+            attributes = result[2].split(/\s*\+/).filter(function(attribute) { return attribute.toLowerCase(); });
         }
-        return new hxl.classes.Column(result[1], attributes, header);
+        return new hxl.classes.Column(result[1].toLowerCase(), attributes, header);
     } else if (useException) {
         throw "Bad tag specification: " + spec;
     } else {
@@ -917,10 +917,9 @@ hxl.classes.TagPattern.prototype.match = function(column) {
     }
 
     // tags must match
-    if (column && this.tag != column.tag) {
+    if (this.tag != '#*' && (column && this.tag != column.tag)) {
         return false;
     }
-
 
     // include attributes must be present
     for (i = 0; i < this.includeAttributes.length; i++) {
@@ -976,23 +975,23 @@ hxl.classes.TagPattern.parse = function(pattern, useException) {
             return null;
         }
     } else {
-        result = String(pattern).match(/^\s*#?([A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*(!)?\s*$/);
+        result = String(pattern).match(/^\s*#?(\*|[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*(!)?\s*$/);
         if (result) {
             includeAttributes = [];
             excludeAttributes = [];
             attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
             for (i = 0; i < attribute_specs.length; i += 2) {
                 if (attribute_specs[i] == "+") {
-                    includeAttributes.push(attribute_specs[i+1]);
+                    includeAttributes.push(attribute_specs[i+1].toLowerCase());
                 } else {
-                    excludeAttributes.push(attribute_specs[i+1]);
+                    excludeAttributes.push(attribute_specs[i+1].toLowerCase());
                 }
             }
             var isAbsolute = false;
             if (result[3] == "!") {
                 isAbsolute = true;
             }
-            return new hxl.classes.TagPattern('#' + result[1], includeAttributes, excludeAttributes, isAbsolute);
+            return new hxl.classes.TagPattern('#' + result[1].toLowerCase(), includeAttributes, excludeAttributes, isAbsolute);
         } else if (useException) {
             throw "Bad tag pattern: " + pattern;
         } else {
