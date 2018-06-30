@@ -5,7 +5,7 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<meta name="generator" content="JsDoc Toolkit" />
 		
-		<title>JsDoc Reference - hxl.classes.Pattern</title>
+		<title>JsDoc Reference - hxl.classes.TagPattern</title>
 
 		<style type="text/css">
 			/* default.css */
@@ -209,8 +209,6 @@ ul.inheritsList
 	
 	<li><a href="../symbols/hxl.classes.IndexFilter.html">hxl.classes.IndexFilter</a></li>
 	
-	<li><a href="../symbols/hxl.classes.Pattern.html">hxl.classes.Pattern</a></li>
-	
 	<li><a href="../symbols/hxl.classes.RenameFilter.html">hxl.classes.RenameFilter</a></li>
 	
 	<li><a href="../symbols/hxl.classes.Row.html">hxl.classes.Row</a></li>
@@ -218,6 +216,8 @@ ul.inheritsList
 	<li><a href="../symbols/hxl.classes.RowFilter.html">hxl.classes.RowFilter</a></li>
 	
 	<li><a href="../symbols/hxl.classes.Source.html">hxl.classes.Source</a></li>
+	
+	<li><a href="../symbols/hxl.classes.TagPattern.html">hxl.classes.TagPattern</a></li>
 	
 </ul>
 <hr />
@@ -228,7 +228,7 @@ ul.inheritsList
 <!-- ============================== class title ============================ -->
 			<h1 class="classTitle">
 				
-				Class hxl.classes.Pattern
+				Class hxl.classes.TagPattern
 			</h1>
 
 <!-- ============================== class summary ========================== -->			
@@ -245,7 +245,7 @@ ul.inheritsList
 
 <!-- ============================== constructor summary ==================== -->			
 			
-			<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class hxl.classes.Pattern.">
+			<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class hxl.classes.TagPattern.">
 				<caption>Class Summary</caption>
 				<thead>
 					<tr>
@@ -258,7 +258,7 @@ ul.inheritsList
 						<td class="attributes">&nbsp;</td>
 						<td class="nameDescription" >
 							<div class="fixedFont">
-								<b><a href="../symbols/hxl.classes.Pattern.html#constructor">hxl.classes.Pattern</a></b>(tag, include_attributes, exclude_attributes)
+								<b><a href="../symbols/hxl.classes.TagPattern.html#constructor">hxl.classes.TagPattern</a></b>(tag, includeAttributes, excludeAttributes, isAbsolute)
 							</div>
 							<div class="description">A compiled pattern for matching HXL columns.</div>
 						</td>
@@ -274,7 +274,7 @@ ul.inheritsList
 			
 				
 				
-				<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class hxl.classes.Pattern.">
+				<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class hxl.classes.TagPattern.">
 					<caption>Method Summary</caption>
 					<thead>
 						<tr>
@@ -287,7 +287,7 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
-								<div class="fixedFont"><b><a href="../symbols/hxl.classes.Pattern.html#match">match</a></b>(column)
+								<div class="fixedFont"><b><a href="../symbols/hxl.classes.TagPattern.html#match">match</a></b>(column)
 								</div>
 								<div class="description">Test if a column matches this pattern.</div>
 							</td>
@@ -296,7 +296,7 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&lt;static&gt; &nbsp;</td>
 							<td class="nameDescription">
-								<div class="fixedFont">hxl.classes.Pattern.<b><a href="../symbols/hxl.classes.Pattern.html#.parse">parse</a></b>(pattern, useException)
+								<div class="fixedFont">hxl.classes.TagPattern.<b><a href="../symbols/hxl.classes.TagPattern.html#.parse">parse</a></b>(pattern, useException)
 								</div>
 								<div class="description">Parse a string into a tag pattern.</div>
 							</td>
@@ -319,7 +319,7 @@ ul.inheritsList
 				</div>
 				
 				<div class="fixedFont">
-						<b>hxl.classes.Pattern</b>(tag, include_attributes, exclude_attributes)
+						<b>hxl.classes.TagPattern</b>(tag, includeAttributes, excludeAttributes, isAbsolute)
 				</div>
 				
 				<div class="description">
@@ -330,7 +330,7 @@ functions that use a pattern compile it as needed, so you can stick
 with strings.  If you want to precompile a pattern, use the static
 #parse method.</p>
 
-<p>The other useful method in this class is <a href="../symbols/hxl.classes.Pattern.html#match">#match</a>, with
+<p>The other useful method in this class is <a href="../symbols/hxl.classes.TagPattern.html#match">#match</a>, with
 tests the pattern against a <a href="../symbols/hxl.classes.Column.html">hxl.classes.Column</a>.</p>
 
 <p>A pattern specification looks like a normal HXL hashtag and
@@ -372,18 +372,24 @@ not #adm1+name+fr</p>
 leading '#'</dd>
 						
 							<dt>
-								<span class="light fixedFont">{array}</span>  <b>include_attributes</b>
+								<span class="light fixedFont">{array}</span>  <b>includeAttributes</b>
 								
 							</dt>
 								<dd>A (possibly-empty) list of
 attribute names that must be present, without the leading '+'</dd>
 						
 							<dt>
-								<span class="light fixedFont">{array}</span>  <b>exclude_attributes</b>
+								<span class="light fixedFont">{array}</span>  <b>excludeAttributes</b>
 								
 							</dt>
 								<dd>A (possibly-empty) list of
 attribute names that must *not* be present, without the leading '+'</dd>
+						
+							<dt>
+								 <b>isAbsolute</b>
+								
+							</dt>
+								<dd></dd>
 						
 						</dl>
 					
@@ -470,17 +476,17 @@ This method is used heavily in the filter classes.
 					<div class="fixedFont">&lt;static&gt; 
 					
 					
-					<span class="light">hxl.classes.Pattern.</span><b>parse</b>(pattern, useException)
+					<span class="light">hxl.classes.TagPattern.</span><b>parse</b>(pattern, useException)
 					
 					</div>
 					<div class="description">
 						Parse a string into a tag pattern.
 
 <pre>
-var pattern = hxl.classes.Pattern.parse('#org+funder-impl');
+var pattern = hxl.classes.TagPattern.parse('#org+funder-impl');
 </pre>
 
-It is safe to pass an already-compiled <a href="../symbols/hxl.classes.Pattern.html">hxl.classes.Pattern</a>
+It is safe to pass an already-compiled <a href="../symbols/hxl.classes.TagPattern.html">hxl.classes.TagPattern</a>
 to this method; it will simple be returned as-is.
 						
 						
@@ -513,7 +519,7 @@ to this method; it will simple be returned as-is.
 							<dl class="detailList">
 							<dt class="heading">Returns:</dt>
 							
-								<dd>a hxl.classes.Pattern, or null if parsing fails (and useException is false).</dd>
+								<dd>a hxl.classes.TagPattern, or null if parsing fails (and useException is false).</dd>
 							
 							</dl>
 						
@@ -534,7 +540,7 @@ to this method; it will simple be returned as-is.
 <!-- ============================== footer ================================= -->
 		<div class="fineprint" style="clear:both">
 			
-			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Thu Mar 03 2016 10:38:04 GMT-0500 (EST)
+			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Sat Jun 30 2018 16:57:12 GMT-0400 (EDT)
 		</div>
 	</body>
 </html>
