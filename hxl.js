@@ -950,6 +950,18 @@ hxl.classes.TagPattern.prototype.match = function(column) {
 }
 
 /**
+ * Test if a tag pattern matches any columns in a list.
+ */
+hxl.classes.TagPattern.prototype.matchList = function(columns) {
+    for (var i = 0; i < columns.length; i++) {
+        if (this.match(columns[i])) {
+            return true;
+        }
+    }
+    return false;
+};
+
+/**
  * Parse a string into a tag pattern.
  *
  * <pre>

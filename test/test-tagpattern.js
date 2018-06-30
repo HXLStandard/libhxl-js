@@ -63,4 +63,10 @@ QUnit.test("wildcard pattern", function(assert) {
     assert.ok(!pattern.match("#foo"));
 });
 
+QUnit.test("find in list", function(assert) {
+    var pattern = hxl.classes.TagPattern.parse("#foo+x");
+    assert.ok(pattern.matchList(["#xxx", "#foo+y+x", "#yyy"]));
+    assert.ok(!pattern.matchList(["#xxx", "#foo+y", "#yyy"]));
+});
+
 // end
