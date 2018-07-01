@@ -1546,13 +1546,13 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
 
     // Make a unique map of data values
     while (row = iterator.next()) {
-        key = this._makeKey(row);
+        rowInfo = this._scanRow(row);
 
         // Always do a count
-        if (dataMap[key]) {
-            dataMap[key] += 1;
+        if (dataMap[rowInfo.key]) {
+            dataMap[rowInfo.key] += 1;
         } else {
-            dataMap[key] = 1;
+            dataMap[rowInfo.key] = 1;
         }
 
         // Aggregate numeric values if requested
@@ -1560,7 +1560,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
             // try parsing, and proceed only if it's numeric
             value = parseFloat(row.get(this.aggregate));
             if (!isNaN(value)) {
-                entry = aggregateMap[key];
+                entry = aggregateMap[rowInfo.key];
                 if (entry) {
                     // Not the first value
                     entry.total++;
@@ -1570,7 +1570,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
                     entry.max = (value > entry.max ? value : entry.max);
                 } else {
                     // the first value
-                    aggregateMap[key] = {
+                    aggregateMap[rowInfo.key] = {
                         total: 1,
                         sum: value,
                         avg: value,
@@ -1621,13 +1621,13 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
  *
  * @return the unique key as a single string.
  */
-hxl.classes.CountFilter.prototype._makeKey = function(row) {
+hxl.classes.CountFilter.prototype._scanRow = function(row) {
     var i, index;
     var values = [];
     for (i = 0; i < this._savedIndices.length; i++) {
         values.push(row.values[this._savedIndices[i]]);
     }
-    return values.join("\0");
+    return {key: values.join("\0")};
 }
 
 
