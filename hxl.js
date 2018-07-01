@@ -91,14 +91,25 @@ hxl.parseString = function(string) {
 }
 
 /**
+ * Normalise just whitespace within a string.
+ */
+hxl.normaliseSpace = function (value) {
+    if (value) {
+        return value.toString().trim().replace(/\s+/, ' ');
+    } else {
+        return null;
+    }
+};
+
+/**
  * Normalise case and whitespace in a string.
  *
  * @param {string} value The string value to normalise.
  * @return {string} the string with case and whitespace normalised.
  */
-hxl.norm = function (value) {
+hxl.normaliseString = function (value) {
     if (value) {
-        return value.toString().trim().replace(/\s+/, ' ').toLowerCase();
+        return hxl.normaliseSpace(value).toLowerCase();
     } else {
         return null;
     }
@@ -1231,8 +1242,8 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
      */
     var parseTest = function (test) {
         if (typeof(test) != 'function') {
-            test = hxl.norm(test);
-            return function (value) { return hxl.norm(value) == test; };
+            test = hxl.normaliseString(test);
+            return function (value) { return hxl.normaliseString(value) == test; };
         } else {
             return test;
         }
@@ -1248,10 +1259,10 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
         var result = s.match(/^\s*([^!=~<>]+)\s*(!?[=~]|<=?|>=?)(.*)$/);
         if (result) {
             operator = hxl.classes.RowFilter.OPERATORS[result[2]];
-            expected = hxl.norm(result[3]);
+            expected = hxl.normaliseString(result[3]);
             return {
                 pattern: parsePattern(result[1]),
-                test: function (value) { return operator(hxl.norm(value), expected); }
+                test: function (value) { return operator(hxl.normaliseString(value), expected); }
             };
         } else {
             throw Error("Bad predicate: " + s);
