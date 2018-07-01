@@ -1540,7 +1540,6 @@ hxl.classes.CountFilter.prototype.iterator = function() {
 hxl.classes.CountFilter.prototype._aggregateData = function() {
     var row, key, values, value, entry, aggregates;
     var dataMap = {};
-    var aggregateMap = {};
     var data = [];
     var iterator = this.source.iterator();
 
@@ -1550,9 +1549,10 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
 
         // Always do a count
         if (dataMap[rowInfo.key]) {
-            dataMap[rowInfo.key] += 1;
+            dataMap[rowInfo.key].count += 1;
         } else {
-            dataMap[rowInfo.key] = 1;
+            // create if it doesn't exist yet
+            dataMap[rowInfo.key] = {count: 1};
         }
 
         // Aggregate numeric values if requested
@@ -1560,7 +1560,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
             // try parsing, and proceed only if it's numeric
             value = parseFloat(row.get(this.aggregate));
             if (!isNaN(value)) {
-                entry = aggregateMap[rowInfo.key];
+                entry = dataMap[rowInfo.key].aggregates;
                 if (entry) {
                     // Not the first value
                     entry.total++;
@@ -1570,7 +1570,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
                     entry.max = (value > entry.max ? value : entry.max);
                 } else {
                     // the first value
-                    aggregateMap[rowInfo.key] = {
+                    dataMap[rowInfo.key].aggregates = {
                         total: 1,
                         sum: value,
                         avg: value,
@@ -1589,11 +1589,11 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
         values = key.split("\0");
 
         // Add the count
-        values.push(dataMap[key]);
+        values.push(dataMap[key].count);
 
         // Add other aggregates if requested
         if (this.aggregate) {
-            entry = aggregateMap[key];
+            entry = dataMap[key].aggregates;
             if (entry) {
                 values = values.concat([
                     entry.sum,
