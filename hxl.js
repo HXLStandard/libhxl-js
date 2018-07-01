@@ -404,13 +404,13 @@ hxl.classes.Source.prototype.getMax = function(pattern) {
 hxl.classes.Source.prototype.getValues = function(pattern) {
     var row;
     var iterator = this.iterator();
-    var value_map = {};
+    var valueMap = {};
 
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
-        value_map[row.get(pattern)] = true;
+        valueMap[row.get(pattern)] = true;
     }
-    return Object.keys(value_map);
+    return Object.keys(valueMap);
 }
 
 /**
@@ -512,19 +512,19 @@ hxl.classes.Source.prototype.forEach = hxl.classes.Source.prototype.each;
  * @return {boolean} true if at least 90% of the non-null values are numeric.
  */
 hxl.classes.Source.prototype.isNumbery = function(pattern) {
-    var total_seen = 0;
-    var numeric_seen = 0;
+    var totalSeen = 0;
+    var numericSeen = 0;
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     this.rows.forEach(function (row) {
         var value = row.get(pattern);
         if (value) {
-            total_seen++;
+            totalSeen++;
             if (!isNaN(value)) {
-                numeric_seen++;
+                numericSeen++;
             }
         }
     });
-    return (total_seen > 0 && (numeric_seen/total_seen >= 0.9));;
+    return (totalSeen > 0 && (numericSeen/totalSeen >= 0.9));;
 }
 
 /**
@@ -715,16 +715,16 @@ hxl.classes.Dataset.prototype.constructor = hxl.classes.Dataset;
  * Get an array of column definitions.
  */
 hxl.classes.Dataset.prototype.getColumns = function() {
-    var cols, tags_index, tagspec, header;
+    var cols, tagsIndex, tagspec, header;
     if (this._savedColumns == null) {
         cols = [];
-        tags_index = this._getTagRowIndex();
-        if (tags_index > -1) {
-            for (var i = 0; i < this._rawData[tags_index].length; i++) {
-                tagspec = this._rawData[tags_index][i];
+        tagsIndex = this._getTagRowIndex();
+        if (tagsIndex > -1) {
+            for (var i = 0; i < this._rawData[tagsIndex].length; i++) {
+                tagspec = this._rawData[tagsIndex][i];
                 header = null;
-                if (tags_index > 0) {
-                    header = this._rawData[tags_index-1][i];
+                if (tagsIndex > 0) {
+                    header = this._rawData[tagsIndex-1][i];
                 }
                 if (tagspec && tagspec.match(/^\s*#.*/)) {
                     cols.push(hxl.classes.Column.parse(tagspec, header));
@@ -993,7 +993,7 @@ hxl.classes.TagPattern.prototype.matchList = function(columns) {
  * @return a hxl.classes.TagPattern, or null if parsing fails (and useException is false).
  */
 hxl.classes.TagPattern.parse = function(pattern, useException) {
-    var result, includeAttributes, excludeAttributes, attribute_specs, i;
+    var result, includeAttributes, excludeAttributes, attributeSpecs, i;
     if (pattern instanceof hxl.classes.TagPattern) {
         // If this is already parsed, then just return it.
         return pattern;
@@ -1008,12 +1008,12 @@ hxl.classes.TagPattern.parse = function(pattern, useException) {
         if (result) {
             includeAttributes = [];
             excludeAttributes = [];
-            attribute_specs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
-            for (i = 0; i < attribute_specs.length; i += 2) {
-                if (attribute_specs[i] == "+") {
-                    includeAttributes.push(attribute_specs[i+1].toLowerCase());
+            attributeSpecs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
+            for (i = 0; i < attributeSpecs.length; i += 2) {
+                if (attributeSpecs[i] == "+") {
+                    includeAttributes.push(attributeSpecs[i+1].toLowerCase());
                 } else {
-                    excludeAttributes.push(attribute_specs[i+1].toLowerCase());
+                    excludeAttributes.push(attributeSpecs[i+1].toLowerCase());
                 }
             }
             var isAbsolute = false;
@@ -1032,11 +1032,14 @@ hxl.classes.TagPattern.parse = function(pattern, useException) {
 
 hxl.classes.TagPattern.toString = function() {
     var s = this.tag;
-    if (this.include_tags) {
-        s += "+" + this.include_tags.join("+");
+    if (this.includeAttributes) {
+        s += "+" + this.includeAttributes.join("+");
     }
-    if (this.exclude_tags) {
-        s += "-" + this.exclude_tags.join("-");
+    if (this.excludeAttributes) {
+        s += "-" + this.excludeAttributes.join("-");
+    }
+    if (this.isAbsolute) {
+        s += "!";
     }
     return s;
 }
@@ -1147,7 +1150,7 @@ hxl.classes.BaseFilter.prototype.iterator = function() {
  * // *or* the population is greater than 1,000
  * var filter = new hxl.classes.RowFilter(source,
  *   { pattern: '#adm1', test: 'Coastal Region' },
- *   { pattern: '#people_num', test: function(v) { return v > 1000; } }
+ *   { pattern: '#population+num', test: function(v) { return v > 1000; } }
  * ]);
  *
  * Predicates are always "OR"'d together. If you need
@@ -1363,8 +1366,8 @@ hxl.classes.ColumnFilter.prototype.getColumns = function() {
 
         // check every column against the patterns
         for (var i = 0; i < this.source.columns.length; i++) {
-            var is_match = columnMatches(this.source.columns[i], this.patterns);
-            if ((is_match && !this.invert) || (!is_match && this.invert)) {
+            var isMatch = columnMatches(this.source.columns[i], this.patterns);
+            if ((isMatch && !this.invert) || (!isMatch && this.invert)) {
                 newColumns.push(this.source.columns[i]);
                 newIndices.push(i);
             }
@@ -1525,8 +1528,8 @@ hxl.classes.CountFilter.prototype.iterator = function() {
  */
 hxl.classes.CountFilter.prototype._aggregateData = function() {
     var row, key, values, value, entry, aggregates;
-    var data_map = {};
-    var aggregate_map = {};
+    var dataMap = {};
+    var aggregateMap = {};
     var data = [];
     var iterator = this.source.iterator();
 
@@ -1535,10 +1538,10 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
         key = this._makeKey(row);
 
         // Always do a count
-        if (data_map[key]) {
-            data_map[key] += 1;
+        if (dataMap[key]) {
+            dataMap[key] += 1;
         } else {
-            data_map[key] = 1;
+            dataMap[key] = 1;
         }
 
         // Aggregate numeric values if requested
@@ -1546,7 +1549,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
             // try parsing, and proceed only if it's numeric
             value = parseFloat(row.get(this.aggregate));
             if (!isNaN(value)) {
-                entry = aggregate_map[key];
+                entry = aggregateMap[key];
                 if (entry) {
                     // Not the first value
                     entry.total++;
@@ -1556,7 +1559,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
                     entry.max = (value > entry.max ? value : entry.max);
                 } else {
                     // the first value
-                    aggregate_map[key] = {
+                    aggregateMap[key] = {
                         total: 1,
                         sum: value,
                         avg: value,
@@ -1569,17 +1572,17 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
     }
 
     // Generate the data from the map
-    for (key in data_map) {
+    for (key in dataMap) {
 
         // Retrieve the values from the key
         values = key.split("\0");
 
         // Add the count
-        values.push(data_map[key]);
+        values.push(dataMap[key]);
 
         // Add other aggregates if requested
         if (this.aggregate) {
-            entry = aggregate_map[key];
+            entry = aggregateMap[key];
             if (entry) {
                 values = values.concat([
                     entry.sum,
