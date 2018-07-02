@@ -1552,7 +1552,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
             dataMap[rowInfo.key].count += 1;
         } else {
             // create if it doesn't exist yet
-            dataMap[rowInfo.key] = {count: 1};
+            dataMap[rowInfo.key] = {count: 1, values: rowInfo.values};
         }
 
         // Aggregate numeric values if requested
@@ -1585,8 +1585,8 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
     // Generate the data from the map
     for (key in dataMap) {
 
-        // Retrieve the values from the key
-        values = key.split("\0");
+        // first set of unnormalised values associated with the key
+        values = dataMap[key].values;
 
         // Add the count
         values.push(dataMap[key].count);
@@ -1622,12 +1622,14 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
  * @return the unique key as a single string.
  */
 hxl.classes.CountFilter.prototype._scanRow = function(row) {
-    var i, index;
+    var keys = [];
     var values = [];
     for (i = 0; i < this._savedIndices.length; i++) {
-        values.push(row.values[this._savedIndices[i]]);
+        var rawValue = row.values[this._savedIndices[i]];
+        keys.push(hxl.normaliseString(rawValue));
+        values.push(rawValue);
     }
-    return {key: values.join("\0")};
+    return {key: keys.join("\0"), values: values};
 }
 
 
