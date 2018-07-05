@@ -841,6 +841,9 @@ hxl.classes.Column.parse = function(spec, header, useException) {
     if (spec instanceof hxl.classes.Column) {
         return spec;
     }
+    if (!spec) {
+        return new hxl.classes.Column();
+    }
     var result = spec.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?\s*$/);
     var attributes = [];
     if (result) {
@@ -943,6 +946,11 @@ hxl.classes.TagPattern.prototype.match = function(column) {
 
     // in case it's not already parsed
     column = hxl.classes.Column.parse(column, "");
+
+    // fail if this column isn't tagged
+    if (!column.tag) {
+        return false;
+    }
 
     // tags must match
     if (this.tag != '#*' && (column && this.tag != column.tag)) {
