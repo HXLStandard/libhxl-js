@@ -86,20 +86,23 @@ hxl.load = function (url, callback) {
 
 /**
  * Load a remote dataset asynchronously via the HXL Proxy
+ * @param {function} success_callback Callback for a successful load (arg is hxl.Dataset object)
+ * @param {function} error_callback Callback for an error (arg is XmlHttpRequest)
  */
-hxl.proxy = function (url, callback) {
+hxl.proxy = function (url, success_callback, error_callback) {
     var url = "https://proxy.hxlstandard.org/data.json?url=" + encodeURIComponent(url);
     var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                callback(hxl.wrap(JSON.parse(xhr.responseText)));
-            } else {
-                throw new Error("Failed to read HXL dataset via Proxy: " + url);
+    xhr.open('GET', url, true);
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            success_callback(hxl.wrap(JSON.parse(xhr.responseText)));
+        } else {
+            if (error_callback) {
+                error_callback(xhr);
             }
         }
     };
-    xhr.open('GET', url);
+    xhr.send(null);
 };
 
 
