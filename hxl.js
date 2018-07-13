@@ -65,6 +65,7 @@ hxl.wrap = function (rawData) {
  *
  * @param {string} url The URL of the HXL dataset to load.
  * @param {function} callback The function to call when loaded.
+ * @param {boolean} useProxy Pass the dataset through the HXL Proxy.
  */
 hxl.load = function (url, callback) {
     if (typeof(Papa) != 'undefined' && typeof(Papa.parse) != 'undefined') {
@@ -82,6 +83,25 @@ hxl.load = function (url, callback) {
         throw Error("No CSV parser available (tried Papa.parse)");
     }
 };
+
+/**
+ * Load a remote dataset asynchronously via the HXL Proxy
+ */
+hxl.proxy = function (url, callback) {
+    var url = "https://proxy.hxlstandard.org/data.json?url=" + encodeURIComponent(url);
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                callback(hxl.wrap(JSON.parse(xhr.responseText)));
+            } else {
+                throw new Error("Failed to read HXL dataset via Proxy: " + url);
+            }
+        }
+    };
+    xhr.open('GET', url);
+};
+
 
 /** 
 * Load a HXL dataset from a string
