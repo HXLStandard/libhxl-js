@@ -42,7 +42,7 @@ var hxl = {
  * @param {string} message The message to log.
  */
 hxl.log = function (message) {
-    hxl.loggers.forEach(function (logger) {
+    hxl.loggers.forEach(logger => {
         loggers(message);
     });
 };
@@ -72,10 +72,10 @@ hxl.load = function (url, callback) {
         Papa.parse(url, {
             download: true,
             skipEmptyLines: true,
-            complete: function (result) {
+            complete: result => {
                 callback(hxl.wrap(result.data));
             },
-            error: function (result) {
+            error: result => {
                 throw new Error(result.errors.join("\n"));
             }
         });
@@ -93,7 +93,7 @@ hxl.proxy = function (url, success_callback, error_callback) {
     var url = "https://proxy.hxlstandard.org/data.json?url=" + encodeURIComponent(url);
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
-    xhr.onload = function () {
+    xhr.onload = () => {
         if (xhr.status === 200) {
             success_callback(hxl.wrap(JSON.parse(xhr.responseText)));
         } else {
@@ -298,7 +298,7 @@ hxl.classes.Source.prototype.getRows = function () {
  * @see #getColumns
  */
 hxl.classes.Source.prototype.getHeaders = function () {
-    return this.columns.map(function (col) { return col.header; });
+    return this.columns.map(col => { return col.header; });
 }
 
 /**
@@ -324,7 +324,7 @@ hxl.classes.Source.prototype.getHeaders = function () {
  * @see #getColumns
  */
 hxl.classes.Source.prototype.getTags = function () {
-    return this.columns.map(function (col) { return col.tag; });
+    return this.columns.map(col => { return col.tag; });
 }
 
 /**
@@ -351,7 +351,7 @@ hxl.classes.Source.prototype.getTags = function () {
  * @see #getColumns
  */
 hxl.classes.Source.prototype.getDisplayTags = function () {
-    return this.columns.map(function (col) { return col.displayTag; });
+    return this.columns.map(col => { return col.displayTag; });
 }
 
 /**
@@ -477,7 +477,7 @@ hxl.classes.Source.prototype.hasColumn = function (pattern) {
 hxl.classes.Source.prototype.getMatchingColumns = function(pattern) {
     var result = [];
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    this.getColumns().forEach(function (col) {
+    this.getColumns().forEach(col => {
         if (pattern.match(col)) {
             result.push(col);
         }
@@ -549,7 +549,7 @@ hxl.classes.Source.prototype.isNumbery = function(pattern) {
     var totalSeen = 0;
     var numericSeen = 0;
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    this.rows.forEach(function (row) {
+    this.rows.forEach(row => {
         var value = row.get(pattern);
         if (value) {
             totalSeen++;
@@ -818,7 +818,7 @@ hxl.classes.Dataset.prototype._getTagRowIndex = function() {
  */
 hxl.classes.Dataset.prototype._isTagRow = function(rawRow) {
     var seenTag = false, seenNonTag = false;
-    rawRow.forEach(function (rawValue) {
+    rawRow.forEach(rawValue => {
         if (rawValue) {
             if (String(rawValue).match(/^\s*#.*$/) && hxl.classes.TagPattern.parse(rawValue)) {
                 seenTag = true;
@@ -1126,7 +1126,7 @@ hxl.classes.Row.prototype.get = function(pattern) {
 hxl.classes.Row.prototype.getAll = function(pattern) {
     var row = this, values = [];
     pattern = hxl.classes.TagPattern.parse(pattern, true);
-    this.columns.forEach(function (column, index) {
+    this.columns.forEach((column, index) => {
         if (pattern.match(column)) {
             values.push(row.values[index]);
         }
@@ -1238,14 +1238,14 @@ hxl.classes.RowFilter.prototype.iterator = function() {
  * Operator functions.
  */
 hxl.classes.RowFilter.OPERATORS = {
-    '=': function (a, b) { return a == b; },
-    '!=': function (a, b) { return a != b; },
-    '<': function (a, b) { return a < b; },
-    '<=': function (a, b) { return a <= b; },
-    '>': function (a, b) { return a > b; },
-    '>=': function (a, b) { return a >= b; },
-    '~': function (a, b) { return a.match(b); },
-    '!~': function (a, b) { return !a.match(b); }
+    '=': (a, b) => { return a == b; },
+    '!=': (a, b) => { return a != b; },
+    '<': (a, b) => { return a < b; },
+    '<=': (a, b) => { return a <= b; },
+    '>': (a, b) => { return a > b; },
+    '>=': (a, b) => { return a >= b; },
+    '~': (a, b) => { return a.match(b); },
+    '!~': (a, b) => { return !a.match(b); }
 };
 
 /**
@@ -1260,7 +1260,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
     /**
      * Helper function: compile the tag pattern, if present
      */
-    var parsePattern = function (pattern) {
+    var parsePattern = pattern => {
         if (pattern) {
             return hxl.classes.TagPattern.parse(pattern);
         } else {
@@ -1271,10 +1271,10 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
     /**
      * Helper function: if test is a plain string, create an equality function.
      */
-    var parseTest = function (test) {
+    var parseTest = test => {
         if (typeof(test) != 'function') {
             test = hxl.normaliseString(test);
-            return function (value) { return hxl.normaliseString(value) == test; };
+            return value => { return hxl.normaliseString(value) == test; };
         } else {
             return test;
         }
@@ -1283,7 +1283,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
     /**
      * Helper function: parse a string predicate.
      */
-    var parsePredicate = function (s) {
+    var parsePredicate = s => {
         var operator, expected;
 
         // loose expression (parsing the pattern will verify)
@@ -1293,7 +1293,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
             expected = hxl.normaliseString(result[3]);
             return {
                 pattern: parsePattern(result[1]),
-                test: function (value) { return operator(hxl.normaliseString(value), expected); }
+                test: value => { return operator(hxl.normaliseString(value), expected); }
             };
         } else {
             throw Error("Bad predicate: " + s);
@@ -1306,7 +1306,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
     }
 
     // Map the list to a compiled/normalised version
-    return predicates.map(function (predicate) {
+    return predicates.map(predicate => {
         if (typeof(predicate) == 'object') {
             return {
                 pattern: parsePattern(predicate.pattern),
@@ -1459,7 +1459,7 @@ hxl.classes.ColumnFilter.prototype._compilePatterns = function (patterns) {
     if (!Array.isArray(patterns)) {
         patterns = [ patterns ];
     }
-    return patterns.map(function (pattern) {
+    return patterns.map(pattern => {
         return hxl.classes.TagPattern.parse(pattern);
     });
 }
@@ -1490,7 +1490,7 @@ hxl.classes.CountFilter = function (source, patterns, aggregate) {
         if (!Array.isArray(patterns)) {
             patterns = [ patterns ];
         }
-        this.patterns = patterns.map(function (pattern) { return hxl.classes.TagPattern.parse(pattern, true); });
+        this.patterns = patterns.map(pattern => { return hxl.classes.TagPattern.parse(pattern, true); });
     } else {
         throw new Error("No tag patterns specified");
     }
@@ -1554,7 +1554,7 @@ hxl.classes.CountFilter.prototype.iterator = function() {
     var data = this._aggregateData();
     var pos = 0;
     return {
-        next: function () {
+        next: () => {
             if (pos < data.length) {
                 return new hxl.classes.Row(data[pos++], columns);
             } else {
@@ -1680,7 +1680,7 @@ hxl.classes.CountFilter.prototype._scanRow = function(row) {
  * @param index the zero-based index of the match to replace. If
  * undefined or null or false, replace *all* matches.
  */
-hxl.classes.RenameFilter = function (source, pattern, newTagspec, newHeader, index) {
+hxl.classes.RenameFilter = function(source, pattern, newTagspec, newHeader, index) {
     hxl.classes.BaseFilter.call(this, source);
     this.pattern = hxl.classes.TagPattern.parse(pattern);
     this.newTagspec = newTagspec;
@@ -1703,7 +1703,7 @@ hxl.classes.RenameFilter.prototype.getColumns = function() {
     if (this._savedColumns === undefined) {
         cols = [];
         // loop through the columns, translating as needed
-        this.source.getColumns().forEach(function (col) {
+        this.source.getColumns().forEach(col => {
             // Index has to be 0 or undefined for a match
             if (pattern.match(col) && !index) {
                 // we have a match!
@@ -1828,7 +1828,7 @@ hxl.classes.IndexFilter.prototype.getColumns = function() {
     if (this._savedColumns == undefined) {
         var i = 0;
         var cols = [];
-        this.source.columns.forEach(function (col) {
+        this.source.columns.forEach(col => {
             if (pattern.match(col)) {
                 col = col.clone();
                 col.attributes.push('i' + i++);
