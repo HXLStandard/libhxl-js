@@ -180,6 +180,10 @@ hxl.classes.Source = function() {
         enumerable: true,
         get: prototype.getRows
     });
+    Object.defineProperty(this, 'rawData', {
+        enumerable: true,
+        get: prototype.getRawData
+    });
     Object.defineProperty(this, 'headers', {
         enumerable: true,
         get: prototype.getHeaders
@@ -273,6 +277,18 @@ hxl.classes.Source.prototype.getRows = function () {
     }
     return rows;
 }
+
+/**
+ * Get raw data for the dataset (excluding header rows and hashtag row)
+ */
+hxl.classes.Source.prototype.getRawData = function () {
+    var rawData = [];
+    var iterator = this.iterator();
+    while (row = iterator.next()) {
+        rawData.push(row.values);
+    }
+    return rawData;
+};
 
 /**
  * Get an array of human-readable column headers.
@@ -790,7 +806,14 @@ hxl.classes.Dataset.prototype.iterator = function() {
             }
         }
     };
-}
+};
+
+/**
+ * Override default function to get raw data, for efficiency
+ */
+hxl.classes.Dataset.prototype.getRawData = function() {
+    return this._rawData.slice(this._getTagRowIndex()+1);
+};
 
 /**
  * Get the index of the tag row.

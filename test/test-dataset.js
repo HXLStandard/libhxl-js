@@ -38,6 +38,10 @@ QUnit.test("rows", function(assert) {
     assert.deepEqual(this.dataset.rows.map(function (row) { return row.values; }), this.test_data.slice(3));
 });
 
+QUnit.test("raw data", function(assert) {
+    assert.deepEqual(this.test_data.slice(3), this.dataset.rawData);
+});
+
 QUnit.test("iterator", function(assert) {
     var iterator = this.dataset.iterator();
     var index = 3;
