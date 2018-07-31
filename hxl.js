@@ -139,6 +139,27 @@ hxl.normaliseString = function (value) {
 };
 
 /**
+ * Normalise a date.
+ * @param {string} dateString - the date string to normalise
+ * @return {string} - a normalised date string (ISO or extended Q format)
+ */
+hxl.normaliseDate = function (dateString) {
+
+    dateString = dateString.trim().toUpperCase();
+
+    if (dateString.match(/\d{4}(-\d{2}(-\d{2})?|Q[1-4])?/)) {
+        return dateString;
+    }
+    
+    var timestamp = Date.parse(dateString);
+    var date = new Date(timestamp);
+    var year = ('0000' + date.getFullYear()).slice(-4);
+    var month = ('00' + (date.getMonth() + 1)).slice(-2);
+    var day = ('00' + date.getDate()).slice(-2)
+    return year + '-' + month + '-' + day;
+};
+
+/**
  * Convenience method for matching a tag pattern
  */
 hxl.match = function(pattern, column) {
