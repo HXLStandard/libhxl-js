@@ -143,20 +143,37 @@ hxl.normaliseString = function (value) {
  * @param {string} dateString - the date string to normalise
  * @return {string} - a normalised date string (ISO or extended Q format)
  */
-hxl.normaliseDate = function (dateString) {
+hxl.normaliseDate = function (dateString, dayfirst=true) {
 
     dateString = dateString.trim().toUpperCase();
 
-    if (dateString.match(/\d{4}(-\d{2}(-\d{2})?|Q[1-4])?/)) {
+    // ISO date?
+    if (dateString.match(/^\d{4}(-\d{2}(-\d{2})?|Q[1-4])?$/)) {
         return dateString;
     }
-    
+
+    // may need to swap month and day
+    // Date.parse expects mm/dd/yy
+    var result = dateString.match(/^(\d\d?)[ .-\/]+(\d\d?)[ .-\/]+(\d\d\d?\d?)$/);
+    if (result) {
+        if (0 + result[1] > 12 || (0 + result[2] <= 12 && dayfirst)) {
+            dateString = result[2] + '/' + result[1] + '/' + result[3];
+        }
+    }
+
+    // Fall back to the old, broken date parse
     var timestamp = Date.parse(dateString);
+    if (isNaN(timestamp)) {
+        return false;
+    }
     var date = new Date(timestamp);
-    var year = ('0000' + date.getFullYear()).slice(-4);
-    var month = ('00' + (date.getMonth() + 1)).slice(-2);
-    var day = ('00' + date.getDate()).slice(-2)
-    return year + '-' + month + '-' + day;
+    var year = date.getFullYear();
+    var month = date.getMonth() + 1;
+    var day = date.getDate();
+    
+    return ('0000' + year).slice(-4) + '-' +
+        ('00' + month).slice(-2) + '-' +
+        ('00' + day).slice(-2);
 };
 
 /**

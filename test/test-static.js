@@ -32,4 +32,16 @@ QUnit.test("normalise dd-mm date", function(assert) {
     assert.equal('2017-01-13', hxl.normaliseDate('13/1/17'));
 });
 
+QUnit.test("force dd-mm date", function(assert) {
+    assert.equal('2017-01-02', hxl.normaliseDate('2/1/17', true));
+});
+
+QUnit.test("force mm-dd date", function(assert) {
+    assert.equal('2017-02-01', hxl.normaliseDate('2/1/17', false));
+});
+
+QUnit.test("month name", function(assert) {
+    assert.equal('2017-01-02', hxl.normaliseDate('2 Jan/17'));
+});
+
 // end
