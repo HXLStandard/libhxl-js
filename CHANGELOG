@@ -2,3 +2,6 @@
 	- add support for wildcard tag patterns (e.g. "#*+f")
 	- add support for absolute tag patterns (e.g. "#affected+children")
 	- make hashtag specs and tag patterns case insensitive
+	- added matchList() method to TagPattern class
+	- add hxl.match() and hxl.matchList() convenience functions for
+	  matching tag patterns
