@@ -32,7 +32,7 @@ QUnit.test("display tag", function(assert) {
 
 QUnit.test("bad tag", function(assert) {
     // no exception
-    assert.ok(hxl.classes.Column.parse("#0abc") === null);
+    assert.ok(hxl.classes.Column.parse("#0abc"));
     // exception
     var seen_exception = false;
     try {

@@ -710,11 +710,7 @@ hxl.classes.Dataset.prototype.getColumns = function() {
                 if (tags_index > 0) {
                     header = this._rawData[tags_index-1][i];
                 }
-                if (tagspec && tagspec.match(/^\s*#.*/)) {
-                    cols.push(hxl.classes.Column.parse(tagspec, header));
-                } else {
-                    cols.push(null);
-                }
+                cols.push(hxl.classes.Column.parse(tagspec, header));
             }
             this._savedColumns = cols;
         } else {
@@ -793,6 +789,9 @@ hxl.classes.Dataset.prototype._isTagRow = function(rawRow) {
 hxl.classes.Column = function (tag, attributes, header) {
     this.tag = tag;
     this.attributes = attributes;
+    if (!this.attributes) {
+        this.attributes = [];
+    }
     this.header = header;
     Object.defineProperty(this, 'displayTag', {
         enumerable: true,
@@ -823,7 +822,7 @@ hxl.classes.Column.parse = function(spec, header, useException) {
         throw "Bad tag specification: " + spec;
     } else {
         hxl.log("Bad tag specification: " + spec);
-        return null;
+        return new hxl.classes.Column();;
     }
 };
 
