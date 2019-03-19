@@ -925,7 +925,7 @@ hxl.classes.Column.parse = function(spec, header, useException) {
         return spec;
     }
     if (!spec) {
-        return new hxl.classes.Column();
+        return new hxl.classes.Column(undefined, [], header);
     }
     var result = spec.match(/^\s*(#[A-Za-z][A-Za-z0-9_]*)((\s*\+[A-Za-z][A-Za-z0-9_]*)*)?\s*$/);
     var attributes = [];
@@ -939,7 +939,7 @@ hxl.classes.Column.parse = function(spec, header, useException) {
         throw "Bad tag specification: " + spec;
     } else {
         hxl.log("Bad tag specification: " + spec);
-        return new hxl.classes.Column();;
+        return new hxl.classes.Column(undefined, [], header);
     }
 };
 
