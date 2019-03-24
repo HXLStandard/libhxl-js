@@ -106,6 +106,52 @@ hxl.norm = function (value) {
 
 
 ////////////////////////////////////////////////////////////////////////
+// Data-type wrangling
+////////////////////////////////////////////////////////////////////////
+
+hxl.types = {};
+
+/**
+ * Check if a value is logically empty.
+ * @param s: the value to check
+ * @returns: true if the value is null, an empty string, or all whitespace
+ */
+hxl.types.isEmpty = function (s) {
+    // check for an isSpace function
+    return (s === null || s === "" || s.match(/^\s+$/));
+};
+
+/**
+ * Check if a value is parseable as a number.
+ */
+hxl.types.isNumber = function (s) {
+    return !isNaN(hxl.types.toNumber(s));
+};
+
+/**
+ * Normalise a value as a number.
+ */
+hxl.types.toNumber = function (s) {
+    if (isNaN(s)) {
+	s = s.replace(/[\s|,]+/, '');
+    }
+    var intValue = parseInt(s);
+    var floatValue = parseFloat(s);
+    if (intValue == floatValue) {
+	return intValue;
+    } else {
+	return floatValue;
+    }
+};
+
+/**
+ * Check if a value is parseable as a date.
+ */
+hxl.types.isDate = function (s) {
+};
+
+
+////////////////////////////////////////////////////////////////////////
 // hxl.classes.Source
 ////////////////////////////////////////////////////////////////////////
 
