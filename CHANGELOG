@@ -1,10 +1,8 @@
-2019-04-01 Release 1.1:
+2019-03-29 Release 0.3
 	- added hxl.Source.exportArray() to export data as an array
 	  including hashtags (and optionally, headers)
 	- fix bug with null columns when there's no hashtag
 	- start adding data typing methods
-
-2018-07-31 Release 1.0
 	- add support for wildcard tag patterns (e.g. "#*+f")
 	- add support for absolute tag patterns (e.g. "#affected+children")
 	- make hashtag specs and tag patterns case insensitive
