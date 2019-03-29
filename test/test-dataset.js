@@ -34,6 +34,19 @@ QUnit.test("columns", function(assert) {
     assert.deepEqual(this.dataset.columns.map(function (col) { return col.displayTag; }), this.test_data[2]);
 });
 
+QUnit.test("partly-tagged dataset", function(assert) {
+    // confirm no null columns when not tagged
+    var dataset = hxl.wrap([
+        ['header', 'header', 'header'],
+        ['#tag', '', '#tag'],
+        ['a', 'b', 'c'],
+        ['d', 'e', 'f']
+    ]);
+    dataset.columns.forEach((column) => {
+        assert.ok(column);
+    });
+});
+
 QUnit.test("rows", function(assert) {
     assert.deepEqual(this.dataset.rows.map(function (row) { return row.values; }), this.test_data.slice(3));
 });
