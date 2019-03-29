@@ -455,9 +455,24 @@ hxl.classes.Source.prototype.getDisplayTags = function () {
 }
 
 /**
+ * Export the whole dataset, include hashtags.
+ *
+ * @param skipHeaders: if truthy, exclude the text headers
+ * @return {array} an array of arrays forming a parseable HXL dataset
+ */
+hxl.classes.Source.prototype.exportArray = function(skipHeaders) {
+    var exported = [];
+    if (!skipHeaders) {
+        exported.push(this.headers);
+    }
+    exported.push(this.displayTags);
+    return exported.concat(this.rawData);
+};
+
+/**
  * Get the minimum value for a column
  *
- * Uses a < comparison, ignoring empty cells. This method is
+ * Uses a less-than comparison, ignoring empty cells. This method is
  * especially useful for setting ranges in a chart or other
  * visualisation.
  *
@@ -492,7 +507,7 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
 /**
  * Get the maximum value for a column
  *
- * Uses a > comparison, ignoring empty cells. This method is especially
+ * Uses a greater-than comparison, ignoring empty cells. This method is especially
  * useful for setting ranges in a chart or other visualisation.
  *
  * <pre>
@@ -932,6 +947,7 @@ hxl.classes.Dataset.prototype._isTagRow = function(rawRow) {
     });
     return (seenTag && !seenNonTag);
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////

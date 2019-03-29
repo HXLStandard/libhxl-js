@@ -34,6 +34,12 @@ QUnit.test("columns", function(assert) {
     assert.deepEqual(this.dataset.columns.map(function (col) { return col.displayTag; }), this.test_data[2]);
 });
 
+QUnit.test("dataset export", function(assert) {
+    assert.deepEqual(this.dataset.exportArray(), this.test_data.slice(1));
+    assert.deepEqual(this.dataset.exportArray(false), this.test_data.slice(1));
+    assert.deepEqual(this.dataset.exportArray(true), this.test_data.slice(2));
+});
+
 QUnit.test("partly-tagged dataset", function(assert) {
     // confirm no null columns when not tagged
     var dataset = hxl.wrap([

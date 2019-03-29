@@ -1,4 +1,6 @@
 2019-04-01 Release 1.1:
+	- added hxl.Source.exportArray() to export data as an array
+	  including hashtags (and optionally, headers)
 	- fix bug with null columns when there's no hashtag
 	- start adding data typing methods
 
