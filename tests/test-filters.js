@@ -173,6 +173,17 @@ QUnit.test("column filter blacklist", function(assert) {
     assert.deepEqual(filter.rows, this.dataset.withoutColumns('#sector').rows);
 });
 
+QUnit.test("duplicate columns", function(assert) {
+    var dataset = hxl.wrap([
+        ['Org', 'Country', 'Country'],
+        ['#org', '#country', '#country'],
+        ['Org A', 'Cameroon', 'Chad']
+    ]);
+    assert.deepEqual(['#country', '#country'], dataset.withColumns(['#country']).displayTags);
+    assert.deepEqual(['#org'], dataset.withoutColumns(['#country']).displayTags);
+});
+
+
 
 //
 // hxl.classes.CountFilter
