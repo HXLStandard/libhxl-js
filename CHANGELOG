@@ -1,3 +1,6 @@
+Release 0.4
+	- moved test/ to tests/
+
 2019-03-29 Release 0.3
 	- added hxl.Source.exportArray() to export data as an array
 	  including hashtags (and optionally, headers)
