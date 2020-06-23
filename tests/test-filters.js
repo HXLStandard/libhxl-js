@@ -173,17 +173,24 @@ QUnit.test("column filter blacklist", function(assert) {
     assert.deepEqual(filter.rows, this.dataset.withoutColumns('#sector').rows);
 });
 
-QUnit.test("duplicate columns", function(assert) {
-    var dataset = hxl.wrap([
-        ["National Society/Country", "Country", "Capacity Indicator", "Capacity", "Country", "CEA Focal Point"],
-        ["#org", "#country", "#indicator", "#indicator+value", "#country+code", "#contact+display"],
-        ["IFRC Bangladesh", "Bangladesh", "3-day CEA training/ToT", "1", "BGD", "Lotte Ruppert (lotte.ruppert@ifrc.org)"]
-    ]);
+QUnit.test("", function(assert) {
+    var rawData = [
+        ["Country", "Country", "Contact"],
+        ["#country", "#country+code", "#contact"],
+        ["Guinea", "GIN", "Name1"],
+        ["Guinea", "GIN", "Name1"],
+        ["Liberia", "LBR", "Name 2"],
+        ["Liberia", "LBR", "Name 3"],
+        ["Sierra Leone", "SLE", "Name 4"],
+        ["Sierra Leone", "SLE", "Name 4"]
+    ];
+    var dataset = hxl.wrap(rawData);
     var filter = dataset.withColumns(['#country+code']);
-    dataset.withColumns(['#country+code']).forEach(function(row, dataset, rowindex){
-        console.log(row)
+    assert.equal(1, filter.columns.length);
+    assert.equal("#country+code", filter.columns[0].displayTag);
+    filter.forEach((row, dataset, rowindex) => {
+        assert.equal(rawData[rowindex+2][1], row.values[0]);
     });
-    assert.equal(4, filter.columns[0]);
 });
 
 

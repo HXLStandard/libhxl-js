@@ -99,6 +99,8 @@ hxl.proxy = function (url, success_callback, error_callback) {
         } else {
             if (error_callback) {
                 error_callback(xhr);
+            } else {
+                console.error(xhr);
             }
         }
     };
