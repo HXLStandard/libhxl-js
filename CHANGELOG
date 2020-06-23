@@ -1,5 +1,8 @@
 Release 0.4
 	- moved test/ to tests/
+	- added unit test for withColumns()
+	- log async errors to console.error if no error method defined
+	- add error callback to hxl.load
 
 2019-03-29 Release 0.3
 	- added hxl.Source.exportArray() to export data as an array

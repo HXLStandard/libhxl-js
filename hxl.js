@@ -64,19 +64,23 @@ hxl.wrap = function (rawData) {
  * the HXL data source (when successfully loaded).
  *
  * @param {string} url The URL of the HXL dataset to load.
- * @param {function} callback The function to call when loaded.
- * @param {boolean} useProxy Pass the dataset through the HXL Proxy.
+ * @param {function} success_callback Callback function for a successful load
+ * @param {function} error_callback Callback function for a loading error
  */
-hxl.load = function (url, callback) {
+hxl.load = function (url, success_callback, error_callback) {
     if (typeof(Papa) != 'undefined' && typeof(Papa.parse) != 'undefined') {
         Papa.parse(url, {
             download: true,
             skipEmptyLines: true,
             complete: result => {
-                callback(hxl.wrap(result.data));
+                success_callback(hxl.wrap(result.data));
             },
             error: result => {
-                throw new Error(result.errors.join("\n"));
+                if (error_callback) {
+                    error_callback(result.errors);
+                } else {
+                    console.error(result.errors);
+                }
             }
         });
     } else {
@@ -86,8 +90,12 @@ hxl.load = function (url, callback) {
 
 /**
  * Load a remote dataset asynchronously via the HXL Proxy
- * @param {function} success_callback Callback for a successful load (arg is hxl.Dataset object)
- * @param {function} error_callback Callback for an error (arg is XmlHttpRequest)
+ *
+ * Does not require a Javascript CSV library.
+ *
+ * @param {string} url The URL of the HXL dataset to load.
+ * @param {function} success_callback Callback function for a successful load
+ * @param {function} error_callback Callback function for a loading error
  */
 hxl.proxy = function (url, success_callback, error_callback) {
     var url = "https://proxy.hxlstandard.org/data.json?url=" + encodeURIComponent(url);
