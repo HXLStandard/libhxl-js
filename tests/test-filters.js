@@ -175,12 +175,15 @@ QUnit.test("column filter blacklist", function(assert) {
 
 QUnit.test("duplicate columns", function(assert) {
     var dataset = hxl.wrap([
-        ['Org', 'Country', 'Country'],
-        ['#org', '#country', '#country'],
-        ['Org A', 'Cameroon', 'Chad']
+        ["National Society/Country", "Country", "Capacity Indicator", "Capacity", "Country", "CEA Focal Point"],
+        ["#org", "#country", "#indicator", "#indicator+value", "#country+code", "#contact+display"],
+        ["IFRC Bangladesh", "Bangladesh", "3-day CEA training/ToT", "1", "BGD", "Lotte Ruppert (lotte.ruppert@ifrc.org)"]
     ]);
-    assert.deepEqual(['#country', '#country'], dataset.withColumns(['#country']).displayTags);
-    assert.deepEqual(['#org'], dataset.withoutColumns(['#country']).displayTags);
+    var filter = dataset.withColumns(['#country+code']);
+    dataset.withColumns(['#country+code']).forEach(function(row, dataset, rowindex){
+        console.log(row)
+    });
+    assert.equal(4, filter.columns[0]);
 });
 
 
