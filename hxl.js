@@ -732,7 +732,7 @@ hxl.classes.Source.prototype.withoutRows = function(predicates) {
  * </pre>
  *
  * @param {array or string} patterns A single string tag pattern or a
- * list of tag patterns for included columns (whitelist). See {@link
+ * list of tag patterns for included columns (includes). See {@link
  * hxl.classes.TagPattern} for details.
  * @return {hxl.classes.Source} A new data source, including only matching columns.
  * @see #withoutColumns
@@ -753,7 +753,7 @@ hxl.classes.Source.prototype.withColumns = function(patterns) {
  * </pre>
  *
  * @param {array or string} patterns A single string tag pattern or a
- * list of tag patterns for excluded columns (blacklist). See {@link
+ * list of tag patterns for excluded columns (excludes). See {@link
  * hxl.classes.TagPattern} for details.
  * @return {hxl.classes.Source} A new data source, excluding matching columns.
  * @see #withColumns
@@ -1500,7 +1500,7 @@ hxl.classes.RowFilter.prototype._tryPredicates = function(row) {
  * @constructor
  * @param source the HXL data source (may be another filter).
  * @param patterns a list of HXL tag patterns to include (or exclude).
- * @param invert if true, exclude matching columns rather than including them (blacklist).
+ * @param invert if true, exclude matching columns rather than including them (excludes).
  */
 hxl.classes.ColumnFilter = function (source, patterns, invert) {
     hxl.classes.BaseFilter.call(this, source);

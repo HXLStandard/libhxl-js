@@ -137,7 +137,7 @@ QUnit.test("row filter row predicate", function(assert) {
 // hxl.classes.ColumnFilter
 //
 
-QUnit.test("column filter whitelist", function(assert) {
+QUnit.test("column filter includes", function(assert) {
     var patterns = ['#sector'];
     var filter = new hxl.classes.ColumnFilter(this.dataset, patterns);
     assert.deepEqual(filter.columns.map(function (col) {
@@ -155,7 +155,7 @@ QUnit.test("column filter whitelist", function(assert) {
     assert.deepEqual(filter.values, this.dataset.withColumns('#sector').values);
 });
 
-QUnit.test("column filter blacklist", function(assert) {
+QUnit.test("column filter excludes", function(assert) {
     var patterns = ['#sector'];
     var filter = new hxl.classes.ColumnFilter(this.dataset, patterns, true);
     assert.deepEqual(filter.columns.map(function (col) {
