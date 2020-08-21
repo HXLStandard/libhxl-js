@@ -33,7 +33,7 @@ function hxl_parse_hashtag (s) {
             attributes = parsed[2].split(/\s*\+/).filter(attribute => attribute.toLowerCase());
         }
         return {
-            tag: parsed[1].toLowerCase(),
+            tag: parsed[1].toLowerCase().substring(1),
             atts: attributes
         };
 
