@@ -1796,6 +1796,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
         // Aggregate numeric values if requested
         if (this.aggregate) {
             // try parsing, and proceed only if it's numeric
+            value = row.get(this.aggregate);
             if (hxl.types.isNumber(value)) {
                 value = hxl.types.toNumber(value);
                 entry = dataMap[rowInfo.key].aggregates;

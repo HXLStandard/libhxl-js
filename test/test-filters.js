@@ -267,12 +267,25 @@ QUnit.test("replace only one match", function(assert) {
 // HXL.classes.SortFilter
 //
 
-QUnit.test("preview the initial rows", function(assert) {
+QUnit.test("basic sort", function(assert) {
     var filter = new hxl.classes.SortFilter(this.dataset, "#sector");
     assert.equal("Health", filter.getRows()[0].get("#sector"));
+});
 
-    filter = this.dataset.sort("#population", true);
+QUnit.test("inverse sort", function(assert) {
+    var filter = this.dataset.sort("#population", true);
     assert.equal("300", filter.getRows()[0].get("#population"));
+});
+
+QUnit.test("multi-column sort", function(assert) {
+    var filter = this.dataset.sort(["#sector", "#population"]);
+    assert.equal("Health", filter.getRows()[0].get("#sector"));
+    assert.equal("400", filter.getRows()[0].get("#population"));
+
+    // flip order of key columns
+    filter = this.dataset.sort(["#population", "#sector"]);
+    assert.equal("300", filter.getRows()[0].get("#population"));
+    assert.equal("WASH", filter.getRows()[0].get("#sector"));
 });
 
 
