@@ -52,7 +52,7 @@ of D3 and JQuery-based CSV parsing.
 
 ### hxl.classes.Source
 
-*Note:* Any method that takes a TagPattern as an argument can accept a
+*Note:* Any method that takes a hxl.classes.TagPattern as an argument can accept a
 string representation instead (e.g. "#affected+f-adults"). Any method
 that takes a list of TagPatterns as an argument can accept a single
 pattern (as above) or list of patterns.
@@ -61,16 +61,17 @@ pattern (as above) or list of patterns.
 
 Property | Data type | Description
 -- | -- | --
-columns | array of hxl.classes.Column |
-rows | array of hxl.classes.Row |
-rawData | array of arrays |
-headers | array of arrays |
-tags | array of strings |
-displayTags | array of strings |
+columns | array of hxl.classes.Column | All the column objects for the dataset
+rows | array of hxl.classes.Row | All the row objects for the dataset (excluding header and hashtag row)
+rawData | array of arrays | Get all the raw row data for the dataset (excluding header and hashtag row)
+headers | array of strings | Get all the text headers as strings
+tags | array of strings | Get all the hashtags (without attributes) as strings
+displayTags | array of strings | Get all the hasthag specs (with attributes) as strings
 
 #### Row iteration methods
 
 Method | Description
+-- | -- | --
 each(callback) | iterator through each row of the dataset, invoking _callback_ with the row, dataset, and row number as arguments
 forEach(callback) | synonym for _each()_
 iterator() | return a simple iterator with a next() function (but not done(); it returns null when finished)
@@ -91,6 +92,7 @@ getValues(tagPattern) | array | List of unique values in the first column matchi
 The return value from a filter is always a new (virtual) dataset with the filter applied.
 
 Method | Description
+-- | --
 withRows(predicates) | Include only rows matching (any of) _predicates_
 withoutRows(predicates) | Include only rows _not_ matching (any of) _predicates_
 withColumns(tagPatterns) | Include only columns matching (any of) _tagPatterns_
@@ -107,14 +109,10 @@ index() | Number repeated tag specs by adding the attributes +i0, +i1, etc to si
 Method | Result | Description
 -- | -- | --
 isNumbery(tagPattern) | boolean | Return true if the first column matching _tagPattern_ contains mainly numbers
-iterator() |
-getRows() | array of hxl.classes.Row
-getRawData() | array of arrays of values | Data excluding the header and hashtag rows
-getTags() |
-getDisplayTags() |
-exportArray() |
-hasColumn(tagPattern) |
-getMatchingColumns(tagPattern) |
+iterator() | object | Return a simple iterator with a next() method for reading through the rows (returns null at the end)
+exportArray() | array of arrays | Export the whole dataset as an array of arrays (including the headers and hashtag row)
+hasColumn(tagPattern) | boolean | true if the dataset has at least one column matching _tagPattern_ 
+getMatchingColumns(tagPattern) | array of int | List of 0-based indices for columns matching _tagPattern_
 
 
 ## Filter examples
