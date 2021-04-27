@@ -274,7 +274,7 @@ QUnit.test("basic sort", function(assert) {
 
 QUnit.test("inverse sort", function(assert) {
     var filter = this.dataset.sort("#population", true);
-    assert.equal("300", filter.getRows()[0].get("#population"));
+    assert.equal("500", filter.getRows()[0].get("#population"));
 });
 
 QUnit.test("multi-column sort", function(assert) {

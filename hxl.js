@@ -1968,10 +1968,10 @@ hxl.classes.RenameFilter.prototype.iterator = function () {
  * @param patterns the tag patterns to sort by
  * @param reverse if true, reverse the sort direction
  */
-hxl.classes.SortFilter = function(source, patterns, maxRows) {
+hxl.classes.SortFilter = function(source, patterns, reverse) {
     hxl.classes.BaseFilter.call(this, source);
     this.patterns = hxl.classes.TagPattern.parseList(patterns);
-    this.maxRows = maxRows == null ? 10 : maxRows;
+    this.reverse = reverse;
 }
 
 hxl.classes.SortFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);

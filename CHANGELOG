@@ -1,3 +1,6 @@
+2021-04-27 Release 0.4.1
+	- bug fix for reverse in sort filter
+
 2021-04-27 Release 0.4
 	- added standalone hxl-parse-hashtag.js module for visualisations, etc
 	- added SortFilter and PreviewFilter, and corresponding hxl.Source.sort() and hxl.Source.preview() methods
