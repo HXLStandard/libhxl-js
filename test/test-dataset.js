@@ -78,6 +78,18 @@ QUnit.test("each", function(assert) {
     }), 3);
 });
 
+QUnit.test("min", function(assert) {
+    assert.equal(this.dataset.getMin('#reached'), 200);
+});
+
+QUnit.test("max", function(assert) {
+    assert.equal(this.dataset.getMax('#reached'), 400);
+});
+
+QUnit.test("sum", function(assert) {
+    assert.equal(this.dataset.getSum('#reached'), 900);
+});
+
 QUnit.test("values", function(assert) {
     assert.deepEqual(this.dataset.getValues('#adm1'), ['Coastal Province', 'Mountain Province']);
 });

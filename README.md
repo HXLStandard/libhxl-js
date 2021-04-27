@@ -52,6 +52,11 @@ of D3 and JQuery-based CSV parsing.
 
 ### hxl.classes.Source
 
+*Note:* Any method that takes a TagPattern as an argument can accept a
+string representation instead (e.g. "#affected+f-adults"). Any method
+that takes a list of TagPatterns as an argument can accept a single
+pattern (as above) or list of patterns.
+
 #### Properties
 
 Property | Data type | Description
@@ -63,14 +68,16 @@ headers | array of arrays |
 tags | array of strings |
 displayTags | array of strings |
 
-#### Iteration methods
+#### Row iteration methods
 
 Method | Description
 each(callback) | iterator through each row of the dataset, invoking _callback_ with the row, dataset, and row number as arguments
 forEach(callback) | synonym for _each()_
-
+iterator() | return a simple iterator with a next() function (but not done(); it returns null when finished)
 
 #### Aggregate methods
+
+Use these methods to extract aggregate values from the dataset.
 
 Method | Result | Description
 -- | -- | --
@@ -81,6 +88,8 @@ getValues(tagPattern) | array | List of unique values in the first column matchi
 
 #### Filter methods
 
+The return value from a filter is always a new (virtual) dataset with the filter applied.
+
 Method | Description
 withRows(predicates) | Include only rows matching (any of) _predicates_
 withoutRows(predicates) | Include only rows _not_ matching (any of) _predicates_
@@ -88,6 +97,7 @@ withColumns(tagPatterns) | Include only columns matching (any of) _tagPatterns_
 withoutColumns(tagPatterns) | Include only columns _not_ matching (any of) _tagPatterns_
 count(tagPatterns, aggregate=null) | Aggregate data (like in a pivot table) for the columns matching _tagPatterns,_ and optionally produce aggregate values for the first column matching the tag pattern _aggregate_
 rename(tagPattern, spec, header=null, index=0) | Rename the _index_ column matching _tagPattern_ to use the hashtag and attributes _spec_ and optionally the new header _header_
+sort(tagPatterns, reverse=false) | Sort the dataset using columns matching tagPatterns as keys, with numeric comparison where possible
 preview(maxRows=10) | Filter to a maximum of _maxRows_ rows.
 catch() | Create a permanent copy of the data at this point in the pipeline, so that earlier filters don't have to be rerun.
 index() | Number repeated tag specs by adding the attributes +i0, +i1, etc to simplify processing.
@@ -105,7 +115,6 @@ getDisplayTags() |
 exportArray() |
 hasColumn(tagPattern) |
 getMatchingColumns(tagPattern) |
-
 
 
 ## Filter examples
@@ -153,8 +162,20 @@ original dataset is unmodified.
 
 Count #adm only in the WASH sector:
 
-    dataset.withRows('#sector=WASH').count('#adm1').each(...);
+    dataset.withRows('#sector=WASH').count('#adm1').each(row => {
+        // do something with each row
+    });
+    
+or
+
+    var iterator = dataset.iterator();
+    var row = iterator.next();
+    while (row != null) {
+        // do something with each row
+        row = iterator.next();
+    }
+    
 
 ## Tests
 
-To run the unit tests, open the file tests/index.html in a modern web browser.
+To run the unit tests, open the file tests/index.html in a modern web browser. You may need to install them in a web server to avoid cross-domain errors in browsers with strict security models.

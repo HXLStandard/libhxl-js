@@ -493,11 +493,8 @@ hxl.classes.Source.prototype.getSum = function(pattern) {
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
         value = row.get(pattern);
-        if (value !== null) {
-            num = parseFloat(value);
-            if (num !== NaN) {
-                result += value;
-            }
+        if (hxl.types.isNumber(value)) {
+            result += hxl.types.toNumber(value);
         }
     }
     return result;
@@ -521,17 +518,15 @@ hxl.classes.Source.prototype.getSum = function(pattern) {
  */
 hxl.classes.Source.prototype.getMin = function(pattern) {
     var min = null;
-    var row, value;
+    var row, value, num;
     var iterator = this.iterator();
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
         value = row.get(pattern);
-        if (value !== null) {
-            num = parseFloat(value);
-            if (num !== NaN) {
-                if (min === null || value < min) {
-                    min = value;
-                }
+        if (hxl.types.isNumber(value)) {
+            num = hxl.types.toNumber(value);
+            if (min == null || num < min) {
+                min = num;
             }
         }
     }
@@ -555,17 +550,15 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
  */
 hxl.classes.Source.prototype.getMax = function(pattern) {
     var max = null;
-    var row, value;
+    var row, value, num;
     var iterator = this.iterator();
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     while (row = iterator.next()) {
         value = row.get(pattern);
-        if (value !== null) {
-            num = parseFloat(value);
-            if (num !== NaN) {
-                if (max === null || value > max) {
-                    max = value;
-                }
+        if (hxl.types.isNumber(value)) {
+            num = hxl.types.toNumber(value);
+            if (max == null || num > max) {
+                max = num;
             }
         }
     }
@@ -702,7 +695,7 @@ hxl.classes.Source.prototype.isNumbery = function(pattern) {
         var value = row.get(pattern);
         if (value) {
             totalSeen++;
-            if (!isNaN(value)) {
+            if (hxl.types.isNumber(value)) {
                 numericSeen++;
             }
         }
@@ -1800,8 +1793,8 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
         // Aggregate numeric values if requested
         if (this.aggregate) {
             // try parsing, and proceed only if it's numeric
-            value = parseFloat(row.get(this.aggregate));
-            if (!isNaN(value)) {
+            if (hxl.types.isNumber(value)) {
+                value = hxl.types.toNumber(value);
                 entry = dataMap[rowInfo.key].aggregates;
                 if (entry) {
                     // Not the first value
@@ -1984,7 +1977,7 @@ hxl.classes.SortFilter.prototype.getSortColumnIndices = function () {
     var indices = [];
     this.patterns.forEach(pattern => {
         for (var i = 0; i < this.columns.length; i++) {
-            if (pattern.match(column)) {
+            if (pattern.match(this.columns[i])) {
                 indices.push(i);
             }
         }
@@ -1996,11 +1989,12 @@ hxl.classes.SortFilter.prototype.compareRows = function (row1, row2, sortIndices
     var values1 = row1.values;
     var values2 = row2.values;
     for (var i = 0; i < sortIndices.length; i++) {
-        var v1 = i < values1.length ? v1 : null;
-        var v2 = i < value2.length ? values2[i] : null;
-        if (hxl.datatypes.isNumber(v1) && hxl.datatypes.isNumber(v2)) {
-            v1 = hxl.datatypes.toNumber(v1);
-            v2 = hxl.datatypes.toNumber(v2);
+        var index = sortIndices[i];
+        var v1 = index < values1.length ? values1[index] : null;
+        var v2 = index < values2.length ? values2[index] : null;
+        if (hxl.types.isNumber(v1) && hxl.types.isNumber(v2)) {
+            v1 = hxl.types.toNumber(v1);
+            v2 = hxl.types.toNumber(v2);
         }
         if (v1 < v2) {
             return this.reverse ? 1 : -1;
@@ -2038,12 +2032,10 @@ hxl.classes.SortFilter.prototype.iterator = function () {
  *
  * @constructor
  * @param source the hxl.classes.Source
- * @param pattern the tag pattern to replace
  * @param maxRows the maximum number of rows to return (if undefined, return 10)
  */
-hxl.classes.PreviewFilter = function(source, pattern, maxRows) {
+hxl.classes.PreviewFilter = function(source, maxRows) {
     hxl.classes.BaseFilter.call(this, source);
-    this.pattern = hxl.classes.TagPattern.parse(pattern);
     this.maxRows = maxRows == null ? 10 : maxRows;
 }
 
@@ -2061,9 +2053,10 @@ hxl.classes.PreviewFilter.prototype.iterator = function () {
     var rowCounter = 0;
     return {
         next: function() {
-            if (rowCounter++ > outer.maxRows) {
+            if (rowCounter >= outer.maxRows) {
                 return null;
             } else {
+                rowCounter++;
                 return iterator.next();
             }
         }

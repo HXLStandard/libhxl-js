@@ -1,5 +1,7 @@
 Release 0.4
 	- added standalone hxl-parse-hashtag.js module for visualisations, etc
+	- added SortFilter and PreviewFilter, and corresponding hxl.Source.sort() and hxl.Source.preview() methods
+	- added hxl.Source.sum() aggregation method
 
 2019-03-29 Release 0.3
 	- added hxl.Source.exportArray() to export data as an array

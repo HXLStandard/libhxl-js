@@ -264,6 +264,32 @@ QUnit.test("replace only one match", function(assert) {
 
 
 //
+// HXL.classes.SortFilter
+//
+
+QUnit.test("preview the initial rows", function(assert) {
+    var filter = new hxl.classes.SortFilter(this.dataset, "#sector");
+    assert.equal("Health", filter.getRows()[0].get("#sector"));
+
+    filter = this.dataset.sort("#population", true);
+    assert.equal("300", filter.getRows()[0].get("#population"));
+});
+
+
+//
+// HXL.classes.PreviewFilter
+//
+
+QUnit.test("preview the initial rows", function(assert) {
+    var filter = new hxl.classes.PreviewFilter(this.dataset, 2);
+    assert.equal(2, filter.getRows().length);
+
+    filter = this.dataset.preview(1);
+    assert.equal(1, filter.getRows().length);
+});
+
+
+//
 // HXL.classes.CacheFilter
 //
 
