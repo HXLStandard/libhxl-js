@@ -2,7 +2,7 @@
 
 QUnit.module("hxl.load", {
     setup: function () {
-        this.url = "http://hxlstandard.github.io/libhxl-js/test/test-data/sample-data.csv";
+        this.url = "https://raw.githubusercontent.com/HXLStandard/libhxl-js/main/test/test-data/sample-data.csv";
     }
 });
 

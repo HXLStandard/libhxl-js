@@ -5,15 +5,15 @@ JavaScript support library for the Humanitarian Exchange Language (HXL) data sta
 
 http://hxlstandard.org
 
-# Overview
+## Overview
 
 This library supports high-level filtering and aggregation operations
 on HXL datasets.  Auto-generated API documentation (which may or may
 not be up to date) is available at https://hxlstandard.github.io/libhxl-js/
 
-# Processing data
+## Usage
 
-## Load a dataset from the web:
+### Load a CSV dataset from the web:
 
 Requires that the Papa Parse CSV library be loaded before HXL (there
 is a copy bundled in lib/, with permission):
@@ -25,7 +25,7 @@ is a copy bundled in lib/, with permission):
 The HXL library will soon also support autodetecting the availability
 of D3 and JQuery-based CSV parsing.
 
-## Create a dataset from array data
+### Create a dataset from array data
 
     var rawData = [
         [ "Organisation", "Cluster", "Province" ],
@@ -37,73 +37,124 @@ of D3 and JQuery-based CSV parsing.
     ];
 
     var dataset = hxl.wrap(rawData);
+    console.log('Dataset has ' + dataset.columns.length + ' columns');
+    
+### Read a remote JSON-encoded HXL dataset
 
-## Process columns
-
-    dataset.columns.forEach(function (column, index) {
-        console.log("Column " + index + " is " + column.displayTag);
+    fetch("http://example.org/data/sample.hxl.json").then(r => {
+        r.json().then(rawData => {
+            let dataset = hxl.wrap(rawData);
+            console.log('Dataset has ' + dataset.columns.length + ' columns');
+        });
     });
+    
+## Classes
 
-## Process rows
+### hxl.classes.Source
 
-(D3- and JQuery-style "each" is also available):
+#### Properties
 
-    dataset.forEach(function (row, index) {
-        console.log(row.values);
-        console.log("The value of #adm1 in this row is " + row.get('#adm1'));      
-    });
+Property | Data type | Description
+-- | -- | --
+columns | array of hxl.classes.Column |
+rows | array of hxl.classes.Row |
+rawData | array of arrays |
+headers | array of arrays |
+tags | array of strings |
+displayTags | array of strings |
 
-## Unique values in a column
+#### Iteration methods
 
-    var unique_values = dataset.getValues('#org');
+Method | Description
+each(callback) | iterator through each row of the dataset, invoking _callback_ with the row, dataset, and row number as arguments
+forEach(callback) | synonym for _each()_
 
-# Filters
+
+#### Aggregate methods
+
+Method | Result | Description
+-- | -- | --
+getSum(tagPattern) | number | Sum of all numeric values in the first column matching _tagPattern_
+getMin(tagPattern) | number | Lowest of all numeric values in the first column matching _tagPattern_
+getMax(tagPattern) | number | Highest of all numeric values in the first column matching _tagPattern_
+getValues(tagPattern) | array | List of unique values in the first column matching _tagPattern_
+
+#### Filter methods
+
+Method | Description
+withRows(predicates) | Include only rows matching (any of) _predicates_
+withoutRows(predicates) | Include only rows _not_ matching (any of) _predicates_
+withColumns(tagPatterns) | Include only columns matching (any of) _tagPatterns_
+withoutColumns(tagPatterns) | Include only columns _not_ matching (any of) _tagPatterns_
+count(tagPatterns, aggregate=null) | Aggregate data (like in a pivot table) for the columns matching _tagPatterns,_ and optionally produce aggregate values for the first column matching the tag pattern _aggregate_
+rename(tagPattern, spec, header=null, index=0) | Rename the _index_ column matching _tagPattern_ to use the hashtag and attributes _spec_ and optionally the new header _header_
+preview(maxRows=10) | Filter to a maximum of _maxRows_ rows.
+catch() | Create a permanent copy of the data at this point in the pipeline, so that earlier filters don't have to be rerun.
+index() | Number repeated tag specs by adding the attributes +i0, +i1, etc to simplify processing.
+
+#### Other methods
+
+Method | Result | Description
+-- | -- | --
+isNumbery(tagPattern) | boolean | Return true if the first column matching _tagPattern_ contains mainly numbers
+iterator() |
+getRows() | array of hxl.classes.Row
+getRawData() | array of arrays of values | Data excluding the header and hashtag rows
+getTags() |
+getDisplayTags() |
+exportArray() |
+hasColumn(tagPattern) |
+getMatchingColumns(tagPattern) |
+
+
+
+## Filter examples
 
 Filters create a new virtual version of the dataset, on the fly. The
 original dataset is unmodified.
 
-## Column filtering
+### Column filtering
 
-### Include only specific columns
+#### Include only specific columns
 
     dataset.withColumns(['#org', '#sector', '#adm1']).each(...);
 
-### Remove specific columns
+#### Remove specific columns
 
     dataset.withoutColumns('#contact+email').each(...);
 
-## Row filtering
+### Row filtering
 
-### Include only specific rows
+#### Include only specific rows
 
     dataset.withRows('#sector=WASH').each(...);
 
-### Remove specific rows
+#### Remove specific rows
 
     dataset.withoutRows('#status=Unreleased').each(...);
 
-### Test an entire row
+#### Test an entire row
 
     dataset.withRows(function (row) { 
         return row.get('#population+targeted+num') < row.get('#population+affected+num');
     }).each(...);
 
-## Aggregation
+### Aggregation
 
-### Count values of #adm1
+#### Count values of #adm1
 
     dataset.count('#adm1').each(...);
 
-### Count combinations of #adm1 and #sector
+#### Count combinations of #adm1 and #sector
 
     dataset.count(['#adm1', '#sector']).each(...);
 
-## Chain filters together
+### Chain filters together
 
 Count #adm only in the WASH sector:
 
     dataset.withRows('#sector=WASH').count('#adm1').each(...);
 
-# Tests
+## Tests
 
 To run the unit tests, open the file tests/index.html in a modern web browser.
