@@ -6,7 +6,8 @@
  * operations that are useful to support mapping and visualisation.
  *
  * @author David Megginson
- * @date Started 2015-02
+ * @date 2021-04-27
+ * @version 0.4
  */
 
 ////////////////////////////////////////////////////////////////////////
@@ -31,7 +32,9 @@ var hxl = {
     /**
      * List of attached loggers
      */
-    loggers: []
+    loggers: [],
+
+    version: "0.4"
 };
 
 /**
