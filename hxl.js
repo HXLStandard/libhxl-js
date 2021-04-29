@@ -93,16 +93,16 @@ hxl.load = function (url, callback) {
  * @param {function} success_callback Callback for a successful load (arg is hxl.Dataset object)
  * @param {function} error_callback Callback for an error (arg is XmlHttpRequest)
  */
-hxl.proxy = function (data_url, success_callback, error_callback) {
-    var url = "https://proxy.hxlstandard.org/data.json?url=" + encodeURIComponent(data_url);
+hxl.proxy = function (dataUrl, successCallback, errorCallback) {
+    var url = "https://proxy.hxlstandard.org/data.json?url=" + encodeURIComponent(dataUrl);
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.onload = () => {
         if (xhr.status === 200) {
-            success_callback(hxl.wrap(JSON.parse(xhr.responseText)));
+            successCallback(hxl.wrap(JSON.parse(xhr.responseText)));
         } else {
-            if (error_callback) {
-                error_callback(xhr);
+            if (errorCallback) {
+                errorCallback(xhr);
             }
         }
     };
@@ -233,7 +233,7 @@ hxl.types.toNumber = function (s) {
     }
     var intValue = parseInt(s);
     var floatValue = parseFloat(s);
-    if (intValue == floatValue) {
+    if (intValue === floatValue) {
 	return intValue;
     } else {
 	return floatValue;
@@ -414,7 +414,7 @@ hxl.classes.Source.prototype.getRawData = function () {
  * @see #getColumns
  */
 hxl.classes.Source.prototype.getHeaders = function () {
-    return this.columns.map(col => { return col.header; });
+    return this.columns.map(col => col.header);
 }
 
 /**
@@ -440,7 +440,7 @@ hxl.classes.Source.prototype.getHeaders = function () {
  * @see #getColumns
  */
 hxl.classes.Source.prototype.getTags = function () {
-    return this.columns.map(col => { return col.tag; });
+    return this.columns.map(col => col.tag);
 }
 
 /**
@@ -467,7 +467,7 @@ hxl.classes.Source.prototype.getTags = function () {
  * @see #getColumns
  */
 hxl.classes.Source.prototype.getDisplayTags = function () {
-    return this.columns.map(col => { return col.displayTag; });
+    return this.columns.map(col => col.displayTag);
 }
 
 /**
@@ -539,7 +539,7 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
         value = row.get(pattern);
         if (hxl.types.isNumber(value)) {
             num = hxl.types.toNumber(value);
-            if (min == null || num < min) {
+            if (min === null || num < min) {
                 min = num;
             }
         }
@@ -573,7 +573,7 @@ hxl.classes.Source.prototype.getMax = function(pattern) {
         value = row.get(pattern);
         if (hxl.types.isNumber(value)) {
             num = hxl.types.toNumber(value);
-            if (max == null || num > max) {
+            if (max === null || num > max) {
                 max = num;
             }
         }
@@ -952,7 +952,7 @@ hxl.classes.Dataset.prototype.constructor = hxl.classes.Dataset;
  */
 hxl.classes.Dataset.prototype.getColumns = function() {
     var cols, tagsIndex, tagspec, header;
-    if (this._savedColumns == null) {
+    if (this._savedColumns === null) {
         cols = [];
         tagsIndex = this._getTagRowIndex();
         if (tagsIndex > -1) {
@@ -966,7 +966,7 @@ hxl.classes.Dataset.prototype.getColumns = function() {
             }
             this._savedColumns = cols;
         } else {
-            throw "No HXL hashtag row found.";
+            throw Error("No HXL hashtag row found.");
         }
     }
     return this._savedColumns;
@@ -1002,14 +1002,14 @@ hxl.classes.Dataset.prototype.getRawData = function() {
  */
 hxl.classes.Dataset.prototype._getTagRowIndex = function() {
     var i;
-    if (this._tagRowIndex == null) {
+    if (this._tagRowIndex === null) {
         for (i = 0; i < 25 && i < this._rawData.length; i++) {
             if (this._isTagRow(this._rawData[i])) {
                 this._tagRowIndex = i;
                 return this._tagRowIndex;
             }
         }
-        throw "No HXL tag row found."
+        throw Error("No HXL tag row found.");
     } else {
         return this._tagRowIndex;
     }
@@ -1081,11 +1081,11 @@ hxl.classes.Column.parse = function(spec, header, useException) {
     if (result) {
         if (result[2]) {
             // filter out empty values
-            attributes = result[2].split(/\s*\+/).filter(function(attribute) { return attribute.toLowerCase(); });
+            attributes = result[2].split(/\s*\+/).filter(attribute => attribute.toLowerCase());
         }
         return new hxl.classes.Column(result[1].toLowerCase(), attributes, header);
     } else if (useException) {
-        throw "Bad tag specification: " + spec;
+        throw Error("Bad tag specification: " + spec);
     } else {
         hxl.log("Bad tag specification: " + spec);
         return new hxl.classes.Column(undefined, [], header);
@@ -1185,7 +1185,7 @@ hxl.classes.TagPattern.prototype.match = function(column) {
     }
 
     // tags must match
-    if (this.tag != '#*' && (column && this.tag != column.tag)) {
+    if (this.tag !== '#*' && (column && this.tag !== column.tag)) {
         return false;
     }
 
@@ -1259,21 +1259,21 @@ hxl.classes.TagPattern.parse = function(pattern, useException) {
         if (result) {
             includeAttributes = [];
             excludeAttributes = [];
-            attributeSpecs = result[2].split(/\s*([+-])/).filter(function(item) { return item; });
+            attributeSpecs = result[2].split(/\s*([+-])/).filter(item => item);
             for (i = 0; i < attributeSpecs.length; i += 2) {
-                if (attributeSpecs[i] == "+") {
+                if (attributeSpecs[i] === "+") {
                     includeAttributes.push(attributeSpecs[i+1].toLowerCase());
                 } else {
                     excludeAttributes.push(attributeSpecs[i+1].toLowerCase());
                 }
             }
             var isAbsolute = false;
-            if (result[3] == "!") {
+            if (result[3] === "!") {
                 isAbsolute = true;
             }
             return new hxl.classes.TagPattern('#' + result[1].toLowerCase(), includeAttributes, excludeAttributes, isAbsolute);
         } else if (useException) {
-            throw "Bad tag pattern: " + pattern;
+            throw Error("Bad tag pattern: " + pattern);
         } else {
             hxl.log("Bad tag pattern: " + pattern);
             return null;
@@ -1296,12 +1296,12 @@ hxl.classes.TagPattern.parse = function(pattern, useException) {
  * @return a hxl.classes.TagPattern, or null if parsing fails (and useException is false).
  */
 hxl.classes.TagPattern.parseList = function(patterns, useException) {
-    if (patterns == null) {
+    if (patterns === null) {
         patterns = [];
     } else if (!Array.isArray(patterns)) {
         patterns = [ patterns ];
     }
-    return patterns.map(pattern => { return hxl.classes.TagPattern.parse(pattern, useException); });
+    return patterns.map(pattern => hxl.classes.TagPattern.parse(pattern, useException));
 }
 
 hxl.classes.TagPattern.toString = function() {
@@ -1471,14 +1471,14 @@ hxl.classes.RowFilter.prototype.iterator = function() {
  * Operator functions.
  */
 hxl.classes.RowFilter.OPERATORS = {
-    '=': (a, b) => { return a == b; },
-    '!=': (a, b) => { return a != b; },
-    '<': (a, b) => { return a < b; },
-    '<=': (a, b) => { return a <= b; },
-    '>': (a, b) => { return a > b; },
-    '>=': (a, b) => { return a >= b; },
-    '~': (a, b) => { return a.match(b); },
-    '!~': (a, b) => { return !a.match(b); }
+    '=': (a, b) =>  a === b,
+    '!=': (a, b) => a !== b,
+    '<': (a, b) => a < b,
+    '<=': (a, b) => a <= b,
+    '>': (a, b) => a > b,
+    '>=': (a, b) => a >= b,
+    '~': (a, b) => a.match(b),
+    '!~': (a, b) => !a.match(b)
 };
 
 /**
@@ -1505,9 +1505,9 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
      * Helper function: if test is a plain string, create an equality function.
      */
     var parseTest = test => {
-        if (typeof(test) != 'function') {
+        if (typeof(test) !== 'function') {
             test = hxl.normaliseString(test);
-            return value => { return hxl.normaliseString(value) == test; };
+            return value => hxl.normaliseString(value) === test;
         } else {
             return test;
         }
@@ -1526,7 +1526,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
             expected = hxl.normaliseString(result[3]);
             return {
                 pattern: parsePattern(result[1]),
-                test: value => { return operator(hxl.normaliseString(value), expected); }
+                test: value => operator(hxl.normaliseString(value), expected)
             };
         } else {
             throw Error("Bad predicate: " + s);
@@ -1540,12 +1540,12 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
 
     // Map the list to a compiled/normalised version
     return predicates.map(predicate => {
-        if (typeof(predicate) == 'object') {
+        if (typeof(predicate) === 'object') {
             return {
                 pattern: parsePattern(predicate.pattern),
                 test: parseTest(predicate.test)
             };
-        } else if (typeof(predicate) == 'function') {
+        } else if (typeof(predicate) === 'function') {
             return {
                 test: predicate
             };
@@ -1574,11 +1574,9 @@ hxl.classes.RowFilter.prototype._tryPredicates = function(row) {
                     return !this.invert;
                 }
             }
-        } 
-
-        // If the first part is not set, then it's a row predicate
-        // test the whole row at once
-        else {
+        } else {
+            // If the first part is not set, then it's a row predicate
+            // test the whole row at once
             if (this.invert) {
                 return !predicate.test(row);
             } else {
@@ -1621,7 +1619,7 @@ hxl.classes.ColumnFilter.prototype.constructor = hxl.classes.ColumnFilter;
  * @return a list of hxl.classes.Column objects.
  */
 hxl.classes.ColumnFilter.prototype.getColumns = function() {
-    if (typeof(this._savedColumns) == 'undefined') {
+    if (typeof(this._savedColumns) === 'undefined') {
 
         /**
          * Check if any of the patterns matches the column.
@@ -1692,9 +1690,7 @@ hxl.classes.ColumnFilter.prototype._compilePatterns = function (patterns) {
     if (!Array.isArray(patterns)) {
         patterns = [ patterns ];
     }
-    return patterns.map(pattern => {
-        return hxl.classes.TagPattern.parse(pattern);
-    });
+    return patterns.map(pattern => hxl.classes.TagPattern.parse(pattern));
 }
 
 
@@ -2061,7 +2057,7 @@ hxl.classes.SortFilter.prototype.iterator = function () {
  */
 hxl.classes.PreviewFilter = function(source, maxRows) {
     hxl.classes.BaseFilter.call(this, source);
-    this.maxRows = maxRows == null ? 10 : maxRows;
+    this.maxRows = maxRows === null ? 10 : maxRows;
 }
 
 hxl.classes.PreviewFilter.prototype = Object.create(hxl.classes.BaseFilter.prototype);
@@ -2166,7 +2162,7 @@ hxl.classes.IndexFilter.prototype.constructor = hxl.classes.IndexFilter;
 
 hxl.classes.IndexFilter.prototype.getColumns = function() {
     var pattern = this.pattern;
-    if (this._savedColumns == undefined) {
+    if (this._savedColumns === undefined) {
         var i = 0;
         var cols = [];
         this.source.columns.forEach(col => {
