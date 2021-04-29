@@ -1,3 +1,6 @@
+Release 0.5
+	- updated to eliminate complaints from ESLint
+
 2021-04-27 Release 0.4.1
 	- bug fix for reverse in sort filter
 

@@ -46,7 +46,7 @@ var hxl = {
  */
 hxl.log = function (message) {
     hxl.loggers.forEach(logger => {
-        loggers(message);
+        logger(message);
     });
 };
 
@@ -71,8 +71,8 @@ hxl.wrap = function (rawData) {
  * @param {boolean} useProxy Pass the dataset through the HXL Proxy.
  */
 hxl.load = function (url, callback) {
-    if (typeof(Papa) != 'undefined' && typeof(Papa.parse) != 'undefined') {
-        Papa.parse(url, {
+    if ("Papa" in window && "parse" in window["Papa"]) {
+        window["Papa"].parse(url, {
             download: true,
             skipEmptyLines: true,
             complete: result => {
@@ -93,8 +93,8 @@ hxl.load = function (url, callback) {
  * @param {function} success_callback Callback for a successful load (arg is hxl.Dataset object)
  * @param {function} error_callback Callback for an error (arg is XmlHttpRequest)
  */
-hxl.proxy = function (url, success_callback, error_callback) {
-    var url = "https://proxy.hxlstandard.org/data.json?url=" + encodeURIComponent(url);
+hxl.proxy = function (data_url, success_callback, error_callback) {
+    var url = "https://proxy.hxlstandard.org/data.json?url=" + encodeURIComponent(data_url);
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.onload = () => {
@@ -114,7 +114,11 @@ hxl.proxy = function (url, success_callback, error_callback) {
 * Load a HXL dataset from a string
 */
 hxl.parseString = function(string) {
-    return hxl.wrap(Papa.parse(string).data);
+    if ("Papa" in window && "parse" in window["Papa"]) {
+        return hxl.wrap(window["Papa"].parse(string).data);
+    } else {
+        throw Error("No CSV parser available (tried Papa.parse)");
+    }
 }
 
 /**
@@ -158,7 +162,7 @@ hxl.normaliseDate = function (dateString, dayfirst=true) {
 
     // may need to swap month and day
     // Date.parse expects mm/dd/yy
-    var result = dateString.match(/^(\d\d?)[ .-\/]+(\d\d?)[ .-\/]+(\d\d\d?\d?)$/);
+    var result = dateString.match(/^(\d\d?)[ .-/]+(\d\d?)[ .-/]+(\d\d\d?\d?)$/);
     if (result) {
         if (0 + result[1] > 12 || (0 + result[2] <= 12 && dayfirst)) {
             dateString = result[2] + '/' + result[1] + '/' + result[3];
@@ -240,6 +244,7 @@ hxl.types.toNumber = function (s) {
  * Check if a value is parseable as a date.
  */
 hxl.types.isDate = function (s) {
+    return !isNaN(Date.parse(s));
 };
 
 
@@ -361,11 +366,12 @@ hxl.classes.Source.prototype.iterator = undefined;
  * @see #getColumns
  */
 hxl.classes.Source.prototype.getRows = function () {
-    var row;
     var rows = [];
     var iterator = this.iterator();
-    while (row = iterator.next()) {
+    var row = iterator.next();
+    while (row) {
         rows.push(row);
+        row = iterator.next();
     }
     return rows;
 }
@@ -376,8 +382,10 @@ hxl.classes.Source.prototype.getRows = function () {
 hxl.classes.Source.prototype.getRawData = function () {
     var rawData = [];
     var iterator = this.iterator();
-    while (row = iterator.next()) {
+    var row = iterator.next()
+    while (row) {
         rawData.push(row.values);
+        row = iterator.next()
     }
     return rawData;
 };
@@ -491,14 +499,16 @@ hxl.classes.Source.prototype.exportArray = function(skipHeaders) {
  */
 hxl.classes.Source.prototype.getSum = function(pattern) {
     var result = 0;
-    var row, value;
+    var value;
     var iterator = this.iterator();
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    while (row = iterator.next()) {
+    var row = iterator.next();
+    while (row) {
         value = row.get(pattern);
         if (hxl.types.isNumber(value)) {
             result += hxl.types.toNumber(value);
         }
+        row = iterator.next();
     }
     return result;
 }
@@ -521,10 +531,11 @@ hxl.classes.Source.prototype.getSum = function(pattern) {
  */
 hxl.classes.Source.prototype.getMin = function(pattern) {
     var min = null;
-    var row, value, num;
+    var value, num;
     var iterator = this.iterator();
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    while (row = iterator.next()) {
+    var row = iterator.next();
+    while (row) {
         value = row.get(pattern);
         if (hxl.types.isNumber(value)) {
             num = hxl.types.toNumber(value);
@@ -532,6 +543,7 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
                 min = num;
             }
         }
+        row = iterator.next();
     }
     return min;
 }
@@ -553,10 +565,11 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
  */
 hxl.classes.Source.prototype.getMax = function(pattern) {
     var max = null;
-    var row, value, num;
+    var value, num;
     var iterator = this.iterator();
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    while (row = iterator.next()) {
+    var row = iterator.next();
+    while (row) {
         value = row.get(pattern);
         if (hxl.types.isNumber(value)) {
             num = hxl.types.toNumber(value);
@@ -564,6 +577,7 @@ hxl.classes.Source.prototype.getMax = function(pattern) {
                 max = num;
             }
         }
+        row = iterator.next();
     }
     return max;
 }
@@ -581,13 +595,15 @@ hxl.classes.Source.prototype.getMax = function(pattern) {
  * @return {array} A list of unique values.
  */
 hxl.classes.Source.prototype.getValues = function(pattern) {
-    var row;
     var iterator = this.iterator();
     var valueMap = {};
 
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    while (row = iterator.next()) {
+    
+    var row = iterator.next();
+    while (row) {
         valueMap[row.get(pattern)] = true;
+        row = iterator.next();
     }
     return Object.keys(valueMap);
 }
@@ -654,9 +670,11 @@ hxl.classes.Source.prototype.getMatchingColumns = function(pattern) {
  * @see #iterator
  */
 hxl.classes.Source.prototype.each = function(callback) {
-    var row, rowNumber = 0, iterator = this.iterator();
-    while (row = iterator.next()) {
+    var rowNumber = 0, iterator = this.iterator();
+    var row = iterator.next();
+    while (row) {
         callback(row, this, rowNumber++);
+        row = iterator.next();
     }
     return rowNumber;
 }
@@ -703,7 +721,7 @@ hxl.classes.Source.prototype.isNumbery = function(pattern) {
             }
         }
     });
-    return (totalSeen > 0 && (numericSeen/totalSeen >= 0.9));;
+    return (totalSeen > 0 && (numericSeen/totalSeen >= 0.9));
 }
 
 /**
@@ -1437,11 +1455,12 @@ hxl.classes.RowFilter.prototype.iterator = function() {
     var outer = this;
     return {
         next: function() {
-            var row;
-            while (row = iterator.next()) {
+            var row = iterator.next();
+            while (row) {
                 if (outer._tryPredicates(row)) {
                     return row;
                 }
+                row = iterator.next();
             }
             return null;
         }
@@ -1776,14 +1795,15 @@ hxl.classes.CountFilter.prototype.iterator = function() {
  * FIXME: can I decompose this into smaller parts?
  */
 hxl.classes.CountFilter.prototype._aggregateData = function() {
-    var row, key, values, value, entry, aggregates;
+    var key, values, value, entry;
     var dataMap = {};
     var data = [];
     var iterator = this.source.iterator();
 
     // Make a unique map of data values
-    while (row = iterator.next()) {
-        rowInfo = this._scanRow(row);
+    var row = iterator.next();
+    while (row) {
+        var rowInfo = this._scanRow(row);
 
         // Always do a count
         if (dataMap[rowInfo.key]) {
@@ -1819,6 +1839,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
                 }
             }
         }
+        row = iterator.next();
     }
 
     // Generate the data from the map
@@ -1863,7 +1884,7 @@ hxl.classes.CountFilter.prototype._aggregateData = function() {
 hxl.classes.CountFilter.prototype._scanRow = function(row) {
     var keys = [];
     var values = [];
-    for (i = 0; i < this._savedIndices.length; i++) {
+    for (var i = 0; i < this._savedIndices.length; i++) {
         var rawValue = row.values[this._savedIndices[i]];
         keys.push(hxl.normaliseString(rawValue));
         values.push(rawValue);
@@ -1946,7 +1967,7 @@ hxl.classes.RenameFilter.prototype.iterator = function () {
     var outer = this;
     return {
         next: function() {
-            row = iterator.next();
+            var row = iterator.next();
             if (row) {
                 row = new hxl.classes.Row(row.values, outer.getColumns());
             }
