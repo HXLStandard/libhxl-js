@@ -86,6 +86,7 @@ getSum(tagPattern) | number | Sum of all numeric values in the first column matc
 getMin(tagPattern) | number | Lowest of all numeric values in the first column matching _tagPattern_
 getMax(tagPattern) | number | Highest of all numeric values in the first column matching _tagPattern_
 getValues(tagPattern) | array | List of unique values in the first column matching _tagPattern_
+getRawValues(tagPattern) | array | List of all values in the first column matching _tagPattern_ (including repetitions and nulls), in the original order
 
 #### Filter methods
 
