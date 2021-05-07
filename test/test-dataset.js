@@ -90,8 +90,12 @@ QUnit.test("sum", function(assert) {
     assert.equal(this.dataset.getSum('#reached'), 900);
 });
 
-QUnit.test("values", function(assert) {
+QUnit.test("unique values", function(assert) {
     assert.deepEqual(this.dataset.getValues('#adm1'), ['Coastal Province', 'Mountain Province']);
+});
+
+QUnit.test("raw values", function(assert) {
+    assert.deepEqual(this.dataset.getRawValues('#adm1'), ['Coastal Province', 'Mountain Province', 'Coastal Province']);
 });
 
 QUnit.test("numbery", function(assert) {

@@ -609,6 +609,30 @@ hxl.classes.Source.prototype.getValues = function(pattern) {
 }
 
 /**
+ * Get a list of all values for a tag (included repeated values and nulls)
+ * 
+ * <pre>
+ * var sectorList = data.getRawValues('#sector');
+ * </pre>
+ *
+ * @param {hxl.classes.TagPattern} pattern A tag pattern to match for the column(s).
+ * @return {array} A list of unique values.
+ */
+hxl.classes.Source.prototype.getRawValues = function(pattern) {
+    var iterator = this.iterator();
+    var rawValues = [];
+
+    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
+    
+    var row = iterator.next();
+    while (row) {
+        rawValues.push(row.get(pattern));
+        row = iterator.next();
+    }
+    return rawValues;
+}
+
+/**
  * Check if a dataset contains at least one column matching a pattern.
  *
  * <pre>
