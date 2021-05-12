@@ -482,18 +482,17 @@ hxl.classes.Source.prototype.exportArray = function(skipHeaders) {
  * @see #getMax
  */
 hxl.classes.Source.prototype.getSum = function(pattern) {
-    var result = 0;
-    var value;
-    var iterator = this.iterator();
-    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    var row = iterator.next();
-    while (row) {
-        value = row.get(pattern);
-        if (hxl.types.isNumber(value)) {
-            result += hxl.types.toNumber(value);
-        }
-        row = iterator.next();
+    let result = 0;
+    const index = this.getColumnIndex(pattern);
+
+    if (index !== null) {
+        this.forEach(row => {
+            if (index < row.values.length && hxl.types.isNumber(row.values[index])) {
+                result += hxl.types.toNumber(row.values[index]);
+            }
+        });
     }
+
     return result;
 }
 
@@ -514,21 +513,20 @@ hxl.classes.Source.prototype.getSum = function(pattern) {
  * @see #getMax
  */
 hxl.classes.Source.prototype.getMin = function(pattern) {
-    var min = null;
-    var value, num;
-    var iterator = this.iterator();
-    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    var row = iterator.next();
-    while (row) {
-        value = row.get(pattern);
-        if (hxl.types.isNumber(value)) {
-            num = hxl.types.toNumber(value);
-            if (min === null || num < min) {
-                min = num;
+    let min = null;
+    const index = this.getColumnIndex(pattern);
+
+    if (index !== null) {
+        this.forEach(row => {
+            if (index < row.values.length && hxl.types.isNumber(row.values[index])) {
+                let num = hxl.types.toNumber(row.values[index]);
+                if (min === null || num < min) {
+                    min = num;
+                }
             }
-        }
-        row = iterator.next();
+        });
     }
+
     return min;
 }
 
@@ -548,21 +546,20 @@ hxl.classes.Source.prototype.getMin = function(pattern) {
  * @see #getMin
  */
 hxl.classes.Source.prototype.getMax = function(pattern) {
-    var max = null;
-    var value, num;
-    var iterator = this.iterator();
-    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    var row = iterator.next();
-    while (row) {
-        value = row.get(pattern);
-        if (hxl.types.isNumber(value)) {
-            num = hxl.types.toNumber(value);
-            if (max === null || num > max) {
-                max = num;
+    let max = null;
+    const index = this.getColumnIndex(pattern);
+
+    if (index !== null) {
+        this.forEach(row => {
+            if (index < row.values.length && hxl.types.isNumber(row.values[index])) {
+                let num = hxl.types.toNumber(row.values[index]);
+                if (max === null || num > max) {
+                    max = num;
+                }
             }
-        }
-        row = iterator.next();
+        });
     }
+
     return max;
 }
 
@@ -579,16 +576,17 @@ hxl.classes.Source.prototype.getMax = function(pattern) {
  * @return {array} A list of unique values.
  */
 hxl.classes.Source.prototype.getValues = function(pattern) {
-    var iterator = this.iterator();
     var valueMap = {};
+    var index = this.getColumnIndex(pattern);
 
-    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    
-    var row = iterator.next();
-    while (row) {
-        valueMap[row.get(pattern)] = true;
-        row = iterator.next();
+    if (index !== null) {
+        this.forEach(row => {
+            if (index < row.values.length) {
+                valueMap[row.values[index]] = true;
+            }
+        });
     }
+
     return Object.keys(valueMap);
 }
 
@@ -634,14 +632,7 @@ hxl.classes.Source.prototype.getRawValues = function(pattern) {
  * @see #getColumns
  */
 hxl.classes.Source.prototype.hasColumn = function (pattern) {
-    var cols =this.getColumns();
-    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    for (var i = 0; i < cols.length; i++) {
-        if (pattern.match(cols[i])) {
-            return true;
-        }
-    }
-    return false;
+    return (this.getColumnIndex(pattern) !== null);
 }
 
 /**
@@ -948,7 +939,14 @@ hxl.classes.Source.prototype.cache = function() {
  */
 hxl.classes.Source.prototype.index = function(pattern) {
     return new hxl.classes.IndexFilter(this, pattern);
-}
+};
+
+/**
+ * Cache of column indices
+ */
+hxl.classes.Source.cache = {
+    indices: {}
+};
 
 
 ////////////////////////////////////////////////////////////////////////
