@@ -185,23 +185,6 @@ hxl.normaliseDate = function (dateString, dayfirst=true) {
         ('00' + day).slice(-2);
 };
 
-/**
- * Convenience method for matching a tag pattern
- */
-hxl.match = function(pattern, column) {
-    pattern = hxl.classes.TagPattern.parse(pattern);
-    return pattern.match(column);
-};
-
-/**
- * Convenience method for matching a tag pattern against a list
- */
-hxl.matchList = function(pattern, columns) {
-    pattern = hxl.classes.TagPattern.parse(pattern);
-    return pattern.matchList(columns);
-};
-
-
 ////////////////////////////////////////////////////////////////////////
 // Data-type wrangling
 ////////////////////////////////////////////////////////////////////////
@@ -1018,13 +1001,14 @@ hxl.classes.Dataset.prototype.getColumns = function() {
  * Get an iterator through all the rows in the dataset.
  */
 hxl.classes.Dataset.prototype.iterator = function() {
+    var outer = this;
     var index = this._getTagRowIndex() + 1;
     var columns = this.columns;
     var rawData = this._rawData;
     return {
         next: function() {
             if (index < rawData.length) {
-                return new hxl.classes.Row(rawData[index++], columns);
+                return new hxl.classes.Row(rawData[index++], columns, outer);
             } else {
                 return null;
             }
@@ -1388,9 +1372,10 @@ hxl.classes.TagPattern.cache = {};
  * Wrapper for a row of HXL data.
  * @constructor
  */
-hxl.classes.Row = function (values, columns) {
+hxl.classes.Row = function (values, columns, dataset) {
     this.values = values;
     this.columns = columns;
+    this.dataset = dataset;
 }
 
 /**
@@ -1400,14 +1385,8 @@ hxl.classes.Row = function (values, columns) {
  * @return a string value, or null if none found.
  */
 hxl.classes.Row.prototype.get = function(pattern) {
-    var i;
-    pattern = hxl.classes.TagPattern.parse(pattern, true);
-    for (i = 0; i < this.columns.length && i < this.values.length; i++) {
-        if (pattern.match(this.columns[i])) {
-            return this.values[i];
-        }
-    }
-    return null;
+    var index = this.dataset.getColumnIndex(pattern);
+    return this.values[index];
 }
 
 /**
@@ -1417,13 +1396,9 @@ hxl.classes.Row.prototype.get = function(pattern) {
  * @return a possibly-empty array of string values (or nulls).
  */
 hxl.classes.Row.prototype.getAll = function(pattern) {
-    var row = this, values = [];
-    pattern = hxl.classes.TagPattern.parse(pattern, true);
-    this.columns.forEach((column, index) => {
-        if (pattern.match(column)) {
-            values.push(row.values[index]);
-        }
-    });
+    var indices = this.dataset.getColumnIndices(pattern);
+    var values = [];
+    indices.forEach(index => values.push(this.values[index]));
     return values;
 }
 
@@ -1436,7 +1411,7 @@ hxl.classes.Row.prototype.getAll = function(pattern) {
  * @return {hxl.classes.Row} a new row object.
  */
 hxl.classes.Row.prototype.clone = function() {
-    return new hxl.classes.Row(this.values.slice(0), this.columns);
+    return new hxl.classes.Row(this.values.slice(0), this.columns, this.dataset);
 }
 
 
@@ -1735,7 +1710,7 @@ hxl.classes.ColumnFilter.prototype.iterator = function () {
                 for (i = 0; i < outer._savedIndices.length; i++) {
                     values.push(row.values[outer._savedIndices[i]]);
                 }
-                return new hxl.classes.Row(values, columns);
+                return new hxl.classes.Row(values, columns, outer);
             } else {
                 // end of data
                 return null;
@@ -1833,13 +1808,14 @@ hxl.classes.CountFilter.prototype.getColumns = function() {
  * @return an iterator over the aggregated data.
  */
 hxl.classes.CountFilter.prototype.iterator = function() {
+    var outer = this;
     var columns = this.columns; // will trigger lazy column creation
     var data = this._aggregateData();
     var pos = 0;
     return {
         next: () => {
             if (pos < data.length) {
-                return new hxl.classes.Row(data[pos++], columns);
+                return new hxl.classes.Row(data[pos++], columns, outer);
             } else {
                 return null;
             }
@@ -2026,7 +2002,7 @@ hxl.classes.RenameFilter.prototype.iterator = function () {
         next: function() {
             var row = iterator.next();
             if (row) {
-                row = new hxl.classes.Row(row.values, outer.getColumns());
+                row = new hxl.classes.Row(row.values, outer.getColumns(), outer);
             }
             return row;
         }

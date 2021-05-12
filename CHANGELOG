@@ -4,6 +4,8 @@ Release 0.6
 	- update Source.getRawValues() to precompute index, for speed
 	- cache compiled tag patterns
 	- cache displayTags for columns
+	- refactor Row.get() and Row.getAll() for performance
+	- remove hxl.match() and hxl.matchList()
 
 2021-05-07 Release 0.5
 	- updated to eliminate complaints from ESLint

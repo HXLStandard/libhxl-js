@@ -6,7 +6,8 @@ QUnit.module("hxl.classes.Row", {
     setup: function () {
         this.columns = ["#org+funder", "#org+impl", "#adm1+code"];
         this.values = ["Donor", "NGO", "Region"];
-        this.row = new hxl.classes.Row(this.values, this.columns.map(function(spec) { return hxl.classes.Column.parse(spec); }));
+        this.dataset = new hxl.classes.Dataset([this.columns, this.values]);
+        this.row = new hxl.classes.Row(this.values, this.dataset.columns, this.dataset);
     }
 });
 
