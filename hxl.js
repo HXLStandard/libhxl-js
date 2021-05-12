@@ -619,17 +619,21 @@ hxl.classes.Source.prototype.getValues = function(pattern) {
  * @return {array} A list of unique values.
  */
 hxl.classes.Source.prototype.getRawValues = function(pattern) {
-    var iterator = this.iterator();
-    var rawValues = [];
+    let result = [];
 
-    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
+    // precompute the index for speed
+    let index = this.getColumnIndex(pattern);
+
+    // iterate through the dataset
+    this.forEach(row => {
+        if (index === null || row.values.length <= index) {
+            result.push(null);
+        } else {
+            result.push(row.values[index]);
+        }
+    });
     
-    var row = iterator.next();
-    while (row) {
-        rawValues.push(row.get(pattern));
-        row = iterator.next();
-    }
-    return rawValues;
+    return result;
 }
 
 /**
@@ -657,16 +661,29 @@ hxl.classes.Source.prototype.hasColumn = function (pattern) {
 }
 
 /**
- * Get a list of indices for columns matching a tag pattern.
+ * Get the index of the first matching column (0-based)
  */
-hxl.classes.Source.prototype.getMatchingColumns = function(pattern) {
+hxl.classes.Source.prototype.getColumnIndex = function(pattern) {
+    var indices = this.getColumnIndices(pattern);
+    if (indices.length > 0) {
+        return indices[0];
+    } else {
+        return null;
+    }
+};
+
+/**
+ * Get a list of indices for columns matching a tag pattern (0-based)
+ */
+hxl.classes.Source.prototype.getColumnIndices = function(pattern) {
     var result = [];
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
-    this.getColumns().forEach(col => {
-        if (pattern.match(col)) {
-            result.push(col);
+    columns = this.getColumns();
+    for (var i = 0; i < columns.length; i++) {
+        if (pattern.match(columns[i])) {
+            result.push(i);
         }
-    });
+    }
     return result;
 }
 
