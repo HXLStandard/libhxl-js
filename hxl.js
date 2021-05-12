@@ -249,6 +249,7 @@ hxl.types.isDate = function (s) {
  */
 hxl.classes.Source = function() {
     var prototype = Object.getPrototypeOf(this);
+    this.indexCache = {};
     Object.defineProperty(this, 'columns', {
         enumerable: true,
         get: prototype.getColumns
@@ -651,7 +652,12 @@ hxl.classes.Source.prototype.getColumnIndex = function(pattern) {
  * Get a list of indices for columns matching a tag pattern (0-based)
  */
 hxl.classes.Source.prototype.getColumnIndices = function(pattern) {
-    var result = [];
+    if (pattern in this.cache) {
+        return this.cache[pattern];
+    }
+
+    let result = [];
+    
     pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
     columns = this.getColumns();
     for (var i = 0; i < columns.length; i++) {
@@ -659,6 +665,7 @@ hxl.classes.Source.prototype.getColumnIndices = function(pattern) {
             result.push(i);
         }
     }
+    this.cache[pattern] = result;
     return result;
 }
 
@@ -727,13 +734,19 @@ hxl.classes.Source.prototype.forEach = hxl.classes.Source.prototype.each;
 hxl.classes.Source.prototype.isNumbery = function(pattern) {
     var totalSeen = 0;
     var numericSeen = 0;
-    pattern = hxl.classes.TagPattern.parse(pattern); // more efficient to precompile
+    var index = this.getColumnIndex(pattern);
+    if (index === null) {
+        return false;
+    }
+    
     this.rows.forEach(row => {
-        var value = row.get(pattern);
-        if (value) {
-            totalSeen++;
-            if (hxl.types.isNumber(value)) {
-                numericSeen++;
+        if (index < row.values.length) {
+            let value = row.values[index];
+            if (value) {
+                totalSeen++;
+                if (hxl.types.isNumber(value)) {
+                    numericSeen++;
+                }
             }
         }
     });
@@ -1133,6 +1146,14 @@ hxl.classes.Column.prototype.clone = function() {
 };
 
 
+/**
+ * Return a string rendition of the column.
+ */
+hxl.classes.Column.prototype.toString = function() {
+    return this.displayTag;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 // hxl.classes.TagPattern
 ////////////////////////////////////////////////////////////////////////
@@ -1344,12 +1365,15 @@ hxl.classes.TagPattern.parseList = function(patterns, useException) {
     return patterns.map(pattern => hxl.classes.TagPattern.parse(pattern, useException));
 }
 
-hxl.classes.TagPattern.toString = function() {
+/**
+ * Return a string rendition of a tag pattern.
+ */
+hxl.classes.TagPattern.prototype.toString = function() {
     var s = this.tag;
-    if (this.includeAttributes) {
+    if (this.includeAttributes.length > 0) {
         s += "+" + this.includeAttributes.join("+");
     }
-    if (this.excludeAttributes) {
+    if (this.excludeAttributes.length > 0) {
         s += "-" + this.excludeAttributes.join("-");
     }
     if (this.isAbsolute) {
@@ -1525,17 +1549,6 @@ hxl.classes.RowFilter.OPERATORS = {
 hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
 
     /**
-     * Helper function: compile the tag pattern, if present
-     */
-    var parsePattern = pattern => {
-        if (pattern) {
-            return hxl.classes.TagPattern.parse(pattern);
-        } else {
-            return null;
-        }
-    };
-
-    /**
      * Helper function: if test is a plain string, create an equality function.
      */
     var parseTest = test => {
@@ -1559,7 +1572,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
             operator = hxl.classes.RowFilter.OPERATORS[result[2]];
             expected = hxl.normaliseString(result[3]);
             return {
-                pattern: parsePattern(result[1]),
+                pattern: result[1],
                 test: value => operator(hxl.normaliseString(value), expected)
             };
         } else {
@@ -1576,7 +1589,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
     return predicates.map(predicate => {
         if (typeof(predicate) === 'object') {
             return {
-                pattern: parsePattern(predicate.pattern),
+                pattern: predicate.pattern,
                 test: parseTest(predicate.test)
             };
         } else if (typeof(predicate) === 'function') {
