@@ -3,6 +3,7 @@ Release 0.6
 	- add Source.getColumnIndex() and Source.getColumnIndices()
 	- update Source.getRawValues() to precompute index, for speed
 	- cache compiled tag patterns
+	- cache displayTags for columns
 
 2021-05-07 Release 0.5
 	- updated to eliminate complaints from ESLint

@@ -187,9 +187,9 @@ QUnit.test("count filter single column", function(assert) {
     ), ['#adm1+name', '#meta+count']);
 
     // test that the convenience methods work
-    assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
-    assert.deepEqual(filter.rows, this.dataset.count(patterns).rows);
-    assert.deepEqual(filter.rows, this.dataset.count('#adm1').rows);
+    assert.deepEqual(filter.displayTags, this.dataset.count(patterns).displayTags);
+    assert.deepEqual(filter.rawData, this.dataset.count(patterns).rawData);
+    assert.deepEqual(filter.rawData, this.dataset.count('#adm1').rawData);
 });
 
 QUnit.test("count filter multiple columns", function(assert) {
@@ -201,8 +201,8 @@ QUnit.test("count filter multiple columns", function(assert) {
     ), ['#sector+cluster', '#adm1+name', '#meta+count']);
 
     // test that the convenience methods work
-    assert.deepEqual(filter.columns, this.dataset.count(patterns).columns);
-    assert.deepEqual(filter.rows, this.dataset.count(patterns).rows);
+    assert.deepEqual(filter.displayTags, this.dataset.count(patterns).displayTags);
+    assert.deepEqual(filter.rawValues, this.dataset.count(patterns).rawValues);
 });
 
 QUnit.test("test numeric aggregation", function(assert) {
@@ -220,8 +220,8 @@ QUnit.test("test numeric aggregation", function(assert) {
     ), ['#adm1+name', '#meta+count', '#meta+sum', '#meta+avg', '#meta+min', '#meta+max']);
 
     // test that the convenience methods work
-    assert.deepEqual(filter.columns, source.count(patterns, aggregate).columns);
-    assert.deepEqual(filter.rows, source.count(patterns, aggregate).rows);
+    assert.deepEqual(filter.displayTags, source.count(patterns, aggregate).displayTags);
+    assert.deepEqual(filter.rawValues, source.count(patterns, aggregate).rawValues);
 });
 
 

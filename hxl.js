@@ -1095,6 +1095,7 @@ hxl.classes.Column = function (tag, attributes, header) {
         this.attributes = [];
     }
     this.header = header;
+    this.representation = null;
     Object.defineProperty(this, 'displayTag', {
         enumerable: true,
         get: hxl.classes.Column.prototype.getDisplayTag
@@ -1105,7 +1106,11 @@ hxl.classes.Column = function (tag, attributes, header) {
  * Create a display tagspec for the column.
  */
 hxl.classes.Column.prototype.getDisplayTag = function() {
-    return [this.tag].concat(this.attributes.sort()).join('+');
+    //return [this.tag].concat(this.attributes.sort()).join('+');
+    if (this.representation === null) {
+        this.representation = [this.tag].concat(this.attributes.sort()).join('+');
+    }
+    return this.representation;
 };
 
 /**
