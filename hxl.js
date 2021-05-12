@@ -652,8 +652,15 @@ hxl.classes.Source.prototype.getColumnIndex = function(pattern) {
  * Get a list of indices for columns matching a tag pattern (0-based)
  */
 hxl.classes.Source.prototype.getColumnIndices = function(pattern) {
-    if (pattern in this.cache) {
-        return this.cache[pattern];
+
+    // Handle a null pattern gracefully
+    if (!pattern) {
+        return null;
+    }
+
+    // Try for a cache hit
+    if (pattern.toString() in this.cache) {
+        return this.cache[pattern.toString()];
     }
 
     let result = [];
@@ -665,7 +672,7 @@ hxl.classes.Source.prototype.getColumnIndices = function(pattern) {
             result.push(i);
         }
     }
-    this.cache[pattern] = result;
+    this.cache[pattern.toString()] = result;
     return result;
 }
 
@@ -1548,22 +1555,24 @@ hxl.classes.RowFilter.OPERATORS = {
  */
 hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
 
+    var outer = this;
+
     /**
      * Helper function: if test is a plain string, create an equality function.
      */
-    var parseTest = test => {
+    function parseTest (test) {
         if (typeof(test) !== 'function') {
             test = hxl.normaliseString(test);
             return value => hxl.normaliseString(value) === test;
         } else {
             return test;
         }
-    };
+    }
 
     /**
-     * Helper function: parse a string predicate.
+     * Helper function: parse a string predicate (when not provided in object form).
      */
-    var parsePredicate = s => {
+    function parsePredicate (s) {
         var operator, expected;
 
         // loose expression (parsing the pattern will verify)
@@ -1573,12 +1582,13 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
             expected = hxl.normaliseString(result[3]);
             return {
                 pattern: result[1],
+                indices: outer.getColumnIndices(result[1]),
                 test: value => operator(hxl.normaliseString(value), expected)
             };
         } else {
             throw Error("Bad predicate: " + s);
         }
-    };
+    }
 
     // If it's not a list, wrap it in one
     if (!Array.isArray(predicates)) {
@@ -1590,6 +1600,7 @@ hxl.classes.RowFilter.prototype._compilePredicates = function(predicates) {
         if (typeof(predicate) === 'object') {
             return {
                 pattern: predicate.pattern,
+                indices: outer.getColumnIndices(predicate.pattern),
                 test: parseTest(predicate.test)
             };
         } else if (typeof(predicate) === 'function') {
@@ -1615,10 +1626,12 @@ hxl.classes.RowFilter.prototype._tryPredicates = function(row) {
         // If the first part is set, then it's a tag pattern
         // test only the values with hashtags that match
         if (predicate.pattern) {
-            var values = row.getAll(predicate.pattern);
-            for (var j = 0; j < values.length; j++) {
-                if (predicate.test(values[i])) {
-                    return !this.invert;
+            if (predicate.indices) {
+                var values = row.getAll(predicate.pattern);
+                for (var j = 0; j < values.length; j++) {
+                    if (predicate.test(values[i])) {
+                        return !this.invert;
+                    }
                 }
             }
         } else {
