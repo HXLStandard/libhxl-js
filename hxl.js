@@ -35,6 +35,7 @@ var hxl = {
     loggers: [],
 
     version: "0.4"
+
 };
 
 /**
@@ -1296,7 +1297,16 @@ hxl.classes.TagPattern.parse = function(pattern, useException) {
             return null;
         }
     } else {
-        result = String(pattern).match(/^\s*#?(\*|[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*(!)?\s*$/);
+
+        pattern = String(pattern);
+
+        // If we've already compiled this one, don't do it again
+        if (this.cache[pattern]) {
+            return this.cache[pattern];
+        }
+
+        // This one is new, so we need to compile it (and save it to the cache)
+        result = pattern.match(/^\s*#?(\*|[A-Za-z][A-Za-z0-9_]*)((?:\s*[+-][A-Za-z][A-Za-z0-9_]*)*)\s*(!)?\s*$/);
         if (result) {
             includeAttributes = [];
             excludeAttributes = [];
@@ -1312,7 +1322,9 @@ hxl.classes.TagPattern.parse = function(pattern, useException) {
             if (result[3] === "!") {
                 isAbsolute = true;
             }
-            return new hxl.classes.TagPattern('#' + result[1].toLowerCase(), includeAttributes, excludeAttributes, isAbsolute);
+            var compiled = new hxl.classes.TagPattern('#' + result[1].toLowerCase(), includeAttributes, excludeAttributes, isAbsolute);
+            this.cache[pattern] = compiled;
+            return compiled;
         } else if (useException) {
             throw Error("Bad tag pattern: " + pattern);
         } else {
@@ -1358,6 +1370,9 @@ hxl.classes.TagPattern.toString = function() {
     }
     return s;
 }
+
+// Static cache of compiled tag patterns
+hxl.classes.TagPattern.cache = {};
 
 
 ////////////////////////////////////////////////////////////////////////
