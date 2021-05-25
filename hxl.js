@@ -6,8 +6,8 @@
  * operations that are useful to support mapping and visualisation.
  *
  * @author David Megginson
- * @date 2021-04-27
- * @version 0.4
+ * @date 2021-05-25
+ * @version 0.6
  */
 
 ////////////////////////////////////////////////////////////////////////
@@ -58,8 +58,65 @@ hxl.log = function (message) {
  * @return a new {@link hxl.classes.Dataset}
  */
 hxl.wrap = function (rawData) {
+
+    /**
+     * Convert object-style JSON to row-style JSON
+     */
+    function convertToRows (data) {
+        let result = [[]];
+        let columnCount = 0;
+        let columns = {};
+
+        data.forEach(item => {
+
+            let row = [];
+
+            if (typeof(item) !== "object" || item === null) {
+                // expecting objects
+                console.error("Expected array of objects", item);
+                throw new Error("Expected array of objects in hxl.wrap()");
+            }
+
+            Object.keys(item).forEach(key => {
+                if (!(key in columns)) {
+                    // we haven't seen this key yet; note it
+                    columns[key] = columnCount++;
+
+                     // add to header row
+                    result[0][columns[key]] = key;
+                }
+                // add the value to the appropriate position in the row
+                row[columns[key]] = item[key];
+            });
+
+            // remove null and undefined values
+            for (var i = 0; i < columnCount; i++) {
+                if (row[i] === undefined || row[i] === null) {
+                    row[i] = "";
+                }
+            }
+
+            // add the row to the dataset
+            result.push(row);
+        });
+
+        return result;
+    }
+    
+    if (!Array.isArray(rawData)) {
+        console.error("Expected an array", rawData);
+        throw new Error("Expected an array in hxl.wrap()");
+    }
+    if (rawData.length == 0) {
+        console.error("Empty array", rawData);
+        throw new Error("Empty array in hxl.wrap()");
+    }
+    if (!Array.isArray(rawData[0])) {
+        rawData = convertToRows(rawData);
+    }
     return new hxl.classes.Dataset(rawData);
 };
+
 
 /**
  * Load a remote HXL dataset asynchronously.
@@ -659,8 +716,8 @@ hxl.classes.Source.prototype.getColumnIndices = function(pattern) {
     }
 
     // Try for a cache hit
-    if (pattern.toString() in this.cache) {
-        return this.cache[pattern.toString()];
+    if (pattern.toString() in this.indexCache) {
+        return this.indexCache[pattern.toString()];
     }
 
     let result = [];
@@ -672,7 +729,7 @@ hxl.classes.Source.prototype.getColumnIndices = function(pattern) {
             result.push(i);
         }
     }
-    this.cache[pattern.toString()] = result;
+    this.indexCache[pattern.toString()] = result;
     return result;
 }
 

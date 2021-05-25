@@ -12,12 +12,27 @@ QUnit.module("hxl.classes.Dataset", {
             ['Org 2', '', 'Health', 'Mountain Province', '300'],
             ['Org 3', '', 'Protection', 'Coastal Province', '400']
         ];
-        this.dataset = new hxl.classes.Dataset(this.test_data);
+        this.dataset = new hxl.wrap(this.test_data);
     }
 });
 
 QUnit.test("dataset created", function(assert) {
     assert.ok(this.dataset);
+});
+
+QUnit.test("object-style JSON", function(assert) {
+    let data = [
+        {'#org': 'Org 1', '#sector+cluster': 'WASH', '#adm1': 'Coastal Province', '#reached': '200'},
+        {'#org': 'Org 2', '#adm1': 'Mountain Province', '#reached': '300'},
+        {'#org': 'Org 3', '#reached': '400', '#sector+cluster': 'Protection', '#adm1': 'Coastal Province'}
+    ];
+    dataset = hxl.wrap(data);
+    assert.deepEqual(dataset.displayTags, ['#org', '#sector+cluster', '#adm1', '#reached']);
+    assert.deepEqual(dataset.rawData, [
+        ["Org 1", "WASH", "Coastal Province", "200"],
+        ["Org 2", "", "Mountain Province", "300"],
+        ["Org 3", "Protection", "Coastal Province", "400"]
+    ]);
 });
 
 QUnit.test("headers", function(assert) {

@@ -1,4 +1,5 @@
-Release 0.6
+2021-05-25 Release 0.6
+	- add support for object-style JSON
 	- remove Source.getMatchingColumns()
 	- add Source.getColumnIndex() and Source.getColumnIndices()
 	- many speed optimisations
